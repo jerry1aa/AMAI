@@ -1837,6 +1837,9 @@ function GameStartDefault takes nothing returns nothing
   if game_mode != "ai_only" then
     call SendToAllAIs(73,0)
     call InitCommanderPart()
+    if game_mode == "commander" then
+      call ForForce(GetPlayersAll(), function ShareWithHumans)
+    endif
     if game_mode == "no_human" or game_mode == "shared" then
       call ForForce(GetPlayersAll(), function RemoveHumanUnitsAndRes)
       if (game_mode == "shared") then
