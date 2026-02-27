@@ -2,8 +2,8 @@
 //  global builds
 //============================================================================
 function global_init_strategy takes nothing returns nothing
-    call SetTierBlock(1, 0.75, 60, true)
-    call SetTierBlock(2, 0.75, 90, true)
+    call SetTierBlock(1, 0.5, 45, true)
+    call SetTierBlock(2, 0.5, 70, true)
     if not IsMapFlagSet(MAP_RANDOM_HERO) then
       call AddBlock(1, uORC_ALTAR, false, 0, uBURROW, 16)
       call AddBlock(1, uORC_ALTAR, false, 0, uORC_BARRACKS, 16)
@@ -206,9 +206,9 @@ function global_build_sequence takes nothing returns nothing
       //--------------------------------------------------------
 		if tier == 1 then
 		endif
-	  	call BuildAdvUpgr2(3, uUPG_ORC_MELEE, 1,TownCountDone(uGRUNT) + TownCountDone(uTAUREN) + TownCountDone(uRAIDER), 5,15,35)
-   		call BuildAdvUpgr2(3, uUPG_ORC_ARMOR, 1,TownCountDone(uGRUNT) + TownCountDone(uTAUREN) + TownCountDone(uRAIDER) + TownCountDone(uHEAD_HUNTER) + TownCountDone(uCATAPULT) + TownCountDone(uKODO_BEAST) + TownCountDone(uWYVERN) + TownCountDone(uBATRIDER), 5,15,35)
-		call BuildAdvUpgr2(3, uUPG_ORC_RANGED, 1,TownCountDone(uHEAD_HUNTER) + TownCountDone(uCATAPULT) + TownCountDone(uKODO_BEAST) + TownCountDone(uWYVERN) + TownCountDone(uBATRIDER), 5,15,35)
+	  	call BuildUpgr(3, uUPG_ORC_MELEE, 40)
+   		call BuildUpgr(3, uUPG_ORC_ARMOR, 40)
+		call BuildUpgr(3, uUPG_ORC_RANGED, 40)
 
 	  
       // TIER 2 UPGRADES

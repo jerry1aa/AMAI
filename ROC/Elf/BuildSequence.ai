@@ -3,11 +3,18 @@
 //============================================================================
 function global_init_strategy takes nothing returns nothing
     call AddHarass(1, 1, uHUNTRESS)
-    call SetTierBlock(1, 0.75, 60, true)
-    call SetTierBlock(2, 0.75, 90, true)
+    call SetTierBlock(1, 0.5, 45, true)
+    call SetTierBlock(2, 0.5, 70, true)
 endfunction
 
 function global_build_sequence takes nothing returns nothing
+      // All moon/wild attack and armor upgrades and bows always requested
+      call BuildUpgr(3, uUPG_STR_MOON, 40)
+      call BuildUpgr(3, uUPG_MOON_ARMOR, 40)
+      call BuildUpgr(3, uUPG_STR_WILD, 40)
+      call BuildUpgr(3, uUPG_HIDES, 40)
+      call BuildUpgr(1, uUPG_BOWS, 40)
+
       // Global Upgrades
       if TownCountDone(uARCHER) > 4 and TownCountDone(uHIPPO) > 2 then
         call BuildUpgr(1, uUPG_HIPPO_TAME, 80)

@@ -2,8 +2,8 @@
 //  global builds
 //============================================================================
 function global_init_strategy takes nothing returns nothing
-    call SetTierBlock(1, 0.75, 60, true)
-    call SetTierBlock(2, 0.75, 90, true)
+    call SetTierBlock(1, 0.5, 45, true)
+    call SetTierBlock(2, 0.5, 70, true)
     if not IsMapFlagSet(MAP_RANDOM_HERO) then
       call AddBlock(1, uELF_ALTAR, false, 0, uANCIENT_WAR, 16)
       call AddBlock(1, uELF_ALTAR, true, 0, uDEN_OF_WONDERS, 36)
@@ -209,10 +209,10 @@ function global_build_sequence takes nothing returns nothing
     if tier == 1 then
 	endif
     call BuildAdvUpgr2(1, uUPG_ULTRAVISION, 1, TownCountDone(uARCHER) + TownCountDone(uHUNTRESS), 5, 10, 20)
-    	call BuildAdvUpgr2(3, uUPG_STR_MOON, 1,TownCountDone(uARCHER) + TownCountDone(uHUNTRESS) + TownCountDone(uHIPPO_RIDER),5,15,35)
-    	call BuildAdvUpgr2(3, uUPG_MOON_ARMOR, 1,TownCountDone(uARCHER) + TownCountDone(uHUNTRESS) + TownCountDone(uHIPPO_RIDER),5,15,35)
-    	call BuildAdvUpgr2(3, uUPG_STR_WILD, 1,TownCountDone(uDRYAD) + TownCountDone(uDRUID_CLAW) + TownCountDone(uMOUNTAIN_GIANT) + TownCountDone(uDRUID_TALON) + TownCountDone(uCHIMAERA) + TownCountDone(uFAERIE_DRAGON),5,15,35 )
-    	call BuildAdvUpgr2(3, uUPG_HIDES, 1,TownCountDone(uDRYAD) + TownCountDone(uDRUID_CLAW) + TownCountDone(uMOUNTAIN_GIANT) + TownCountDone(uDRUID_TALON) + TownCountDone(uCHIMAERA) + TownCountDone(uFAERIE_DRAGON),5,15,35 )
+    	call BuildUpgr(3, uUPG_STR_MOON, 40)
+    	call BuildUpgr(3, uUPG_MOON_ARMOR, 40)
+    	call BuildUpgr(3, uUPG_STR_WILD, 40)
+    	call BuildUpgr(3, uUPG_HIDES, 40)
 
 
     // TIER 2 UPGRADES
@@ -225,7 +225,7 @@ function global_build_sequence takes nothing returns nothing
 		call BuildUpgr(1, uUPG_WELL_SPRING,25)	
 	endif
     endif  
-	call BuildAdvUpgr2(1, uUPG_BOWS,2,TownCountDone(uARCHER),1,10,40)
+	call BuildUpgr(1, uUPG_BOWS, 40)
 	call BuildAdvUpgr2(1, uUPG_SCOUT, 2,TownCountDone(uHUNTRESS),1,10,25)
 	call BuildAdvUpgr2(1, uUPG_BOLT, 2,TownCountDone(uBALLISTA),0.25,10,40)
 	call BuildAdvUpgr2(1, uUPG_ABOLISH, 2, TownCountDone(uDRYAD),0.33,15,80)

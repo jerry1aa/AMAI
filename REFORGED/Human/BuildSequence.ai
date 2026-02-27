@@ -2,8 +2,8 @@
 //  global builds
 //============================================================================
 function global_init_strategy takes nothing returns nothing
-    call SetTierBlock(1, 0.75, 60, true)
-    call SetTierBlock(2, 0.75, 90, true)
+    call SetTierBlock(1, 0.5, 45, true)
+    call SetTierBlock(2, 0.5, 70, true)
     if not IsMapFlagSet(MAP_RANDOM_HERO) then
       call AddBlock(1, uHUMAN_ALTAR, false, 0, uARCANE_VAULT, 16)
       call AddBlock(1, uHUMAN_ALTAR, false, 0, uHOUSE, 16)
@@ -220,10 +220,10 @@ function global_build_sequence takes nothing returns nothing
     call BuildAdvUpgr2(1, uUPG_DEFEND, 1,TownCountDone(uFOOTMAN), 0.33, 15, 50)
     call BuildAdvUpgr(1, uUPG_WOOD,1,1,1,5,40)
     call BuildAdvUpgr(3, uUPG_MASONRY,1,1,1,5,20)
-    call BuildAdvUpgr2(3, uUPG_MELEE, 1,TownCountDone(uFOOTMAN) + TownCountDone(uKNIGHT) + TownCountDone(uSPELL_BREAKER) + TownCountDone(uHUMAN_DRAGON_HAWK) + TownCountDone(uGRYPHON), 5,15,40)
-    call BuildAdvUpgr2(3, uUPG_ARMOR, 1,TownCountDone(uFOOTMAN) + TownCountDone(uKNIGHT) + TownCountDone(uSPELL_BREAKER) + TownCountDone(uCOPTER) + TownCountDone(TANK), 5,15,40)
-    call BuildAdvUpgr2(3, uUPG_RANGED, 1,TownCountDone(uRIFLEMAN) + TownCountDone(uCOPTER) + TownCountDone(TANK) + TownCountDone(uMORTAR), 3,15,40)
-    call BuildAdvUpgr2(3, uUPG_LEATHER, 1,TownCountDone(uRIFLEMAN) + TownCountDone(uGRYPHON) + TownCountDone(uHUMAN_DRAGON_HAWK) + TownCountDone(uMORTAR), 3,15,40)
+    call BuildUpgr(3, uUPG_MELEE, 40)
+    call BuildUpgr(3, uUPG_ARMOR, 40)
+    call BuildUpgr(3, uUPG_RANGED, 40)
+    call BuildUpgr(3, uUPG_LEATHER, 40)
 
     // TIER 2 UPGRADES
     //--------------------------------------------------------

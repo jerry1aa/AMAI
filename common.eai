@@ -985,7 +985,7 @@ globals
     integer own_race = 0
     real taunt_rate = 1.00 // how man % of the time computers taunt, set by profiles. Recommended values 0.50 to 1.50
     integer taunt_start_time = 60  // the time for the computers to start taunting (in seconds * 5)
-    integer farm_food = 8 // build farm when this near food used to food produced
+    integer farm_food = 12 // build farm when this near food used to food produced (higher = more forecast)
     integer strat_persistence = 1000  // extra priority to the current strategy to make computer not change strategy too fast  
 
 	// Profile settings
@@ -3120,7 +3120,7 @@ function InitProfile takes nothing returns nothing
   set uncertainty = p_uncertainty[profile]
   set area_uncertainty = uncertainty / 2
   set minimum_attack_strength = p_minimum_attack_strength[profile]
-  set farm_food = p_farm_food[profile]
+  set farm_food = p_farm_food[profile] + 2  // +2 forecast: build farms earlier (when more food space left)
   set exp_first_time = p_exp_first_time[profile]
   set exp_second_time = p_exp_second_time[profile]
   set strat_persistence = p_strat_persistence[profile]
@@ -12192,7 +12192,7 @@ function OneBuildLoopAM takes nothing returns nothing
 //        call DumpInteger("Prio"+Int2Str(index),build_prio[index])
 
         if qty > mo and qty > 0 then
-          if tp == BUILD_UNIT and IsRacialHallId(id, tier + 1) and ((blocktierup and bl_tier_lockactive[tier - 1]) or expablocktier) and GetUnitGoldCost2(id) * 4 > total_gold and GetUnitWoodCost2(id) * 4 > total_wood then
+          if tp == BUILD_UNIT and IsRacialHallId(id, tier + 1) and ((blocktierup and bl_tier_lockactive[tier - 1]) or expablocktier) and GetUnitGoldCost2(id) * 2 > total_gold and GetUnitWoodCost2(id) * 2 > total_wood then
               call Trace("TIER UP block " + logtype + unitNames[id] + " " + Int2Str(id))
               set ret = CANNOT_BUILD // Not ready to tier up
           elseif tp == BUILD_UNIT then

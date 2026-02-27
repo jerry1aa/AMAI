@@ -3,8 +3,8 @@
 //============================================================================
 function global_init_strategy takes nothing returns nothing
     call AddBlock(8, uORC_ALTAR, true, 0, uBURROW, 2)
-    call SetTierBlock(1, 0.75, 60, true)
-    call SetTierBlock(2, 0.75, 90, true)
+    call SetTierBlock(1, 0.5, 45, true)
+    call SetTierBlock(2, 0.5, 70, true)
     call AddHarass(1, 1, uGRUNT)
     call AddHarass(2, 5, uGRUNT)
     set distraction_group = 2
@@ -13,6 +13,11 @@ endfunction
 function global_build_sequence takes nothing returns nothing
 	  call DefendTownsDone(1, uBURROW, 80)
 	  call DefendTownsDone(3, uORC_WATCH_TOWER, 70)
+
+          // All forge attack, armor, and ranged upgrades always requested
+          call BuildUpgr(3, uUPG_ORC_MELEE, 40)
+          call BuildUpgr(3, uUPG_ORC_ARMOR, 40)
+          call BuildUpgr(3, uUPG_ORC_RANGED, 40)
 
           // Global upgrades
           if TownCountDone(uGRUNT) > 5 and tier > 1 then
