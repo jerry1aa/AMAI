@@ -949,6 +949,8 @@ globals
     boolean no_attack		= false
     boolean no_creep_attack	= false
     boolean no_player_attack	= false
+    boolean commanded_attack_active = false
+    boolean commanded_attack_force = false
     boolean strat_change_allowed = true
     boolean new_year = false
     integer attack_target_p	= 0
@@ -8391,10 +8393,35 @@ function QueueFinished takes nothing returns boolean
 endfunction
 
 //============================================================================
+function ClearCommandedAttackFlags takes nothing returns nothing
+  set commanded_attack_active = false
+  set commanded_attack_force = false
+endfunction
+
+//============================================================================
+function DisableRetreatControlAM takes nothing returns nothing
+  set retreat_controlled = false
+  set canflee = false
+  set isfleeing = false
+  set retreat_end_switch = false
+  call SetGroupsFlee(false)
+endfunction
+
+//============================================================================
+function SetCommandedAttackFlags takes boolean force returns nothing
+  set commanded_attack_active = true
+  set commanded_attack_force = force
+  if force then
+    call DisableRetreatControlAM()
+  endif
+endfunction
+
+//============================================================================
 function QueueGetNextCommand takes nothing returns boolean
   if QueueFinished() then
     set queue_running = false
     call QueueReset()
+    call ClearCommandedAttackFlags()
     return false
   else
     set queue_t_u = QueueGetNextUnit()
@@ -8439,6 +8466,7 @@ function cmd_cancel takes integer cmd, integer data returns nothing
     set no_creep_attack = false
     set no_player_attack = false
     set queue_running	= false
+    call ClearCommandedAttackFlags()
     call Trace("Cancel All command" )
 
   elseif cmd == 1 then	// Cancel build orders
@@ -8452,6 +8480,7 @@ function cmd_cancel takes integer cmd, integer data returns nothing
     set no_creep_attack = false
     set no_player_attack = false
     set queue_running = false
+    call ClearCommandedAttackFlags()
     call Trace("Cancel Attack Command" )
 
   endif
@@ -8466,11 +8495,13 @@ function cmd_attack takes integer cmd, integer data returns nothing
     set queue_running = false
     set attack_player = false
     set attack_point = false
+    call ClearCommandedAttackFlags()
     call Trace("Stop Attack Command" )
 
   elseif cmd == 11 then	// Start no attacks
     set break_attack = true
     set no_attack = true
+    call ClearCommandedAttackFlags()
     call Trace("No Attacks Command" )
   elseif cmd == 12 then	// Attack specific player
     set break_attack = true
@@ -8478,6 +8509,7 @@ function cmd_attack takes integer cmd, integer data returns nothing
     set attack_target_p = data
     set attack_player = true
     set attack_point = false
+    call SetCommandedAttackFlags(false)
     call Trace("Attack Player Command" )
 
   elseif cmd == 13 then	// Attack specific point
@@ -8493,6 +8525,7 @@ function cmd_attack takes integer cmd, integer data returns nothing
     set attack_point = true
     set attack_player = false
     call PopLastCommand()
+    call SetCommandedAttackFlags(false)
     call Trace("Attack Coordinates received" )
 
   elseif cmd == 14 then	// No attacks on creeps
@@ -8517,6 +8550,49 @@ function cmd_attack takes integer cmd, integer data returns nothing
     set attack_unit = true
     set break_attack = true
     set go_home = false
+    call SetCommandedAttackFlags(false)
+    call DisplayToAllies(chat_confirm_attack_unit)
+
+  elseif cmd == 40 then	// Force attack specific player
+    set break_attack = true
+    set go_home = false
+    set attack_target_p = data
+    set attack_player = true
+    set attack_point = false
+    call SetCommandedAttackFlags(true)
+    call Trace("Force Attack Player Command" )
+
+  elseif cmd == 41 then	// Force attack specific point
+    call Trace("Force Attack Point Command" )
+    loop
+      exitwhen CommandsWaiting()!=0
+      call Sleep(0.5)
+    endloop
+    set attack_target_x = GetLastCommand()
+    set attack_target_y = GetLastData()
+    set break_attack = true
+    set go_home = false
+    set attack_point = true
+    set attack_player = false
+    call PopLastCommand()
+    call SetCommandedAttackFlags(true)
+    call Trace("Force Attack Coordinates received" )
+
+  elseif cmd == 42 then	// Force attack selected unit
+    set gr = CreateGroup()
+    call GroupEnumUnitsSelected(gr, Player(data), null)
+    set target_unit	= FirstOfGroup(gr)
+    call DestroyGroup(gr)
+    set gr = null
+    if target_unit == null then
+      call DisplayToAllies(chat_no_unit_selected)
+    endif
+    set attack_point = false
+    set attack_player = false
+    set attack_unit = true
+    set break_attack = true
+    set go_home = false
+    call SetCommandedAttackFlags(true)
     call DisplayToAllies(chat_confirm_attack_unit)
 
   elseif cmd == 17 then // Towerrush
@@ -8552,6 +8628,7 @@ function cmd_queue takes integer cmd, integer data returns nothing
   if cmd == 30 then	// Cancel queue
     call QueueReset()
     set queue_running = false
+    call ClearCommandedAttackFlags()
     call Trace("Cancel Queue Command" )
 
   elseif cmd == 31 then	// Queue Attack specific point
@@ -8581,6 +8658,7 @@ function cmd_queue takes integer cmd, integer data returns nothing
     if QueueGetNextCommand() then
       set queue_running = true
       set no_attack = false
+      call SetCommandedAttackFlags(false)
       call Trace("Queue started" )
     else
       call Trace("Queue is empty" )
@@ -8588,9 +8666,13 @@ function cmd_queue takes integer cmd, integer data returns nothing
 
   elseif cmd == 34 then	// Pausing queue
     set queue_running = false
+    call ClearCommandedAttackFlags()
 
   elseif cmd == 35 then	// Unpausing queue
     set queue_running = true
+    if not QueueFinished() then
+      call SetCommandedAttackFlags(false)
+    endif
 
   elseif cmd == 36 then	// Removing last command
     call QueueRemoveCommand()
@@ -12496,7 +12578,9 @@ function DoAttackJobs takes nothing returns nothing
     set major_hero = GetMajorHero(major_hero)
   endif
   set battle_radius = normal_battle_radius
-  call EnableRetreatControl()
+  if not commanded_attack_force then
+    call EnableRetreatControl()
+  endif
 endfunction
 
 //============================================================================
@@ -13830,7 +13914,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
 
   endif
 
-  if town_threatened then
+  if town_threatened and not commanded_attack_force then
     set break_attack = false
     call SleepUntilTownDefended(ai_strength)
     return
@@ -13860,6 +13944,9 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
       call Trace("Attacking point "+Int2Str(queue_t_x)+","+Int2Str(queue_t_y) )
       call FromGroupAndGhoulsAM(3)
       call QueueAttackMoveXY(queue_t_x, queue_t_y)
+      if not queue_running then
+        call ClearCommandedAttackFlags()
+      endif
       call Trace("Point reached or aborted" )
       return
 
@@ -13867,6 +13954,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
       if queue_t_u == null then
         call Trace("No unit targeted, queue stopped" )
         set queue_running = false
+        call ClearCommandedAttackFlags()
       elseif not UnitAlive(queue_t_u) then
         call Trace("Unit is dead, next command" )
         call QueueGetNextCommand()
@@ -13887,6 +13975,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
     if hall == null then
       call Trace("No target found" )
       set attack_player = false
+      call ClearCommandedAttackFlags()
       return
     endif
     call FromGroupAndGhoulsAM(3)
@@ -13908,9 +13997,11 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
     if target_unit == null then
       call Trace("No unit targeted" )
       set attack_unit = false
+      call ClearCommandedAttackFlags()
     elseif not UnitAlive(target_unit) then
       call Trace("Unit is dead" )
       set attack_unit = false
+      call ClearCommandedAttackFlags()
     else
       call Trace("Attacking unit" )
       call FromGroupAndGhoulsAM(3)

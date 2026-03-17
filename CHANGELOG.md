@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## Unreleased
 
+### Added
+- Commander: force attack commands that can override retreat behavior during player-commanded attacks.
+
 ### Changed
 - Additional peons needed for an expansion will start to be trained early.
 - Added boots of speed to all strategies.
