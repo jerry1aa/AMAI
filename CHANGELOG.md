@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Additional peons needed for an expansion will start to be trained early.
 - Added boots of speed to all strategies.
 - Undead will buy an orb of corruption if you have a lich.
+- Commander `SHOW COMMAND` now reports both player-issued commander orders and the AI's current autonomous battle state, including focus target and strategy context.
+- Commander `SHOW COMMAND` now shows attack target detail for `AI command: Attacking`, reporting player/unit/point targets or the captain attack position instead of focus-fire context.
 
 ### Fixed
 - Ensure all peons for pre-existing expansions are trained before expanding again.

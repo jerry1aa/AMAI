@@ -3495,6 +3495,65 @@ function GetCurrentCommandReport takes nothing returns string
 endfunction
 
 //============================================================================
+function GetCurrentAICommandReport takes nothing returns string
+  local string report = "AI command: "
+  local string ai_status = ""
+  local string attack_detail = ""
+  local string strategy_status = ""
+  local string ai_strat_label = GetCurrentStrategyName()
+  local unit u = null
+  local player p = null
+
+  if isfleeing then
+    set ai_status = "Retreating"
+  elseif town_threatened and not commanded_attack_force then
+    set ai_status = "Defending threatened town"
+  elseif attack_running then
+    set ai_status = "Attacking"
+  else
+    set ai_status = "Idle / regrouping"
+  endif
+
+  set report = report + ai_status
+
+  if commanded_attack_active then
+    set report = report + " [commander override]"
+  endif
+
+  if attack_running then
+    if attack_player then
+      if attack_target_p >= 0 and attack_target_p < GetBJMaxPlayers() then
+        set p = Player(attack_target_p)
+        set attack_detail = " | target player (" + GetPlayerName(p) + ")"
+      else
+        set attack_detail = " | target player (" + Int2Str(attack_target_p) + ")"
+      endif
+    elseif attack_point then
+      set attack_detail = " | target point (" + Int2Str(attack_target_x) + "," + Int2Str(attack_target_y) + ")"
+    elseif attack_unit then
+      set u = target_unit
+      if u == null then
+        set attack_detail = " | target unit (none)"
+      elseif UnitAlive(u) then
+        set attack_detail = " | target unit (" + GetUnitName(u) + ")"
+      else
+        set attack_detail = " | target unit (dead)"
+      endif
+    elseif lastcaptainx != 0 or lastcaptainy != 0 then
+      set attack_detail = " | target position (" + Int2Str(R2I(lastcaptainx)) + "," + Int2Str(R2I(lastcaptainy)) + ")"
+    endif
+  endif
+
+  if ai_strat_label != "" then
+    set strategy_status = " | strategy " + ai_strat_label
+  endif
+
+  set p = null
+  set u = null
+  return report + attack_detail + strategy_status
+endfunction
+
+//============================================================================
 //  (AMAI)    Chat function
 //============================================================================
 function QueueChat takes string text, player p, boolean important returns nothing
@@ -8891,6 +8950,7 @@ function cmd_misc takes integer cmd, integer data returns nothing
 
   elseif cmd == 62 then // Show current command
     call DisplayToAllies(GetCurrentCommandReport())
+    call DisplayToAllies(GetCurrentAICommandReport())
 
   elseif cmd == 70 then // change strategy
     if data < rp_strat_length then
