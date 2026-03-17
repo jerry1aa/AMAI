@@ -3,8 +3,8 @@
 //============================================================================
 function global_init_strategy takes nothing returns nothing
     call AddBlock(8, uORC_ALTAR, true, 0, uHOUSE, 2)
-    call SetTierBlock(1, 0.75, 60, true)
-    call SetTierBlock(2, 0.75, 90, true)
+    call SetTierBlock(1, 0.5, 45, true)
+    call SetTierBlock(2, 0.5, 70, true)
     call AddHarass(1, 1, uFOOTMAN)
     call AddHarass(2, 4, uFOOTMAN)
     call AddHarass(2, 1, uRIFLEMAN)
@@ -14,6 +14,12 @@ endfunction
 function global_build_sequence takes nothing returns nothing
 	  call DefendTownsDone(3, uGUARD_TOWER, 60)
 	  call BuildUnit(2, uGUARD_TOWER, 30)
+
+          // All blacksmith attack and armor upgrades always requested
+          call BuildUpgr(3, uUPG_MELEE, 40)
+          call BuildUpgr(3, uUPG_ARMOR, 40)
+          call BuildUpgr(3, uUPG_RANGED, 40)
+          call BuildUpgr(3, uUPG_LEATHER, 40)
 
           // Global Upgrades
           if TownCountDone(uCOPTER) > 2 then

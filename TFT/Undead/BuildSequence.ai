@@ -2,8 +2,8 @@
 //  global builds
 //============================================================================
 function global_init_strategy takes nothing returns nothing
-    call SetTierBlock(1, 0.75, 60, true)
-    call SetTierBlock(2, 0.75, 90, true)
+    call SetTierBlock(1, 0.5, 45, true)
+    call SetTierBlock(2, 0.5, 70, true)
     if not IsMapFlagSet(MAP_RANDOM_HERO) then
       call AddBlock(1, uUNDEAD_ALTAR, true, 0, uTOMB_OF_RELICS, 36)
       call AddBlock(1, uUNDEAD_ALTAR, false, 0, uCRYPT, 16)
@@ -195,10 +195,10 @@ function global_build_sequence takes nothing returns nothing
     //--------------------------------------------------------
     if tier == 1 then
 	endif
-	call BuildAdvUpgr2(3, uUPG_UNHOLY_STR, 1,TownCountDone(uGHOUL) + TownCountDone(uABOMINATION) + TownCountDone(uMEAT_WAGON), 5,15,35)
-	call BuildAdvUpgr2(3, uUPG_UNHOLY_ARMOR,1,TownCountDone(uGHOUL) + TownCountDone(uABOMINATION),5,15,35)
-	call BuildAdvUpgr2(3, uUPG_CR_ATTACK, 1,TownCountDone(uCRYPT_FIEND) + TownCountDone(uGARGOYLE) + TownCountDone(uFROST_WYRM) + TownCountDone(uBLK_SPHINX),5,15,35)
-	call BuildAdvUpgr2(3, uUPG_CR_ARMOR,1,TownCountDone(uCRYPT_FIEND) + TownCountDone(uGARGOYLE) + TownCountDone(uFROST_WYRM) + TownCountDone(uBLK_SPHINX),5,15,35)
+	call BuildUpgr(3, uUPG_UNHOLY_STR, 40)
+	call BuildUpgr(3, uUPG_UNHOLY_ARMOR, 40)
+	call BuildUpgr(3, uUPG_CR_ATTACK, 40)
+	call BuildUpgr(3, uUPG_CR_ARMOR, 40)
 
     // TIER 2 UPGRADES
     //--------------------------------------------------------

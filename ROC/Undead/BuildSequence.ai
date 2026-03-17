@@ -3,8 +3,8 @@
 //============================================================================
 function global_init_strategy takes nothing returns nothing
     call AddBlock(8, uORC_ALTAR, true, 0, uZIGGURAT_1, 2)
-    call SetTierBlock(1, 0.75, 60, true)
-    call SetTierBlock(2, 0.75, 90, true)
+    call SetTierBlock(1, 0.5, 45, true)
+    call SetTierBlock(2, 0.5, 70, true)
     call AddHarass(1, 1, uGHOUL)
     call AddHarass(2, 2, uGHOUL)
     call AddHarass(3, 4, uGHOUL)
@@ -14,6 +14,12 @@ function global_init_strategy takes nothing returns nothing
 
 endfunction
 function global_build_sequence takes nothing returns nothing
+
+    // All graveyard and crypt attack and armor upgrades always requested
+    call BuildUpgr(3, uUPG_UNHOLY_STR, 40)
+    call BuildUpgr(3, uUPG_UNHOLY_ARMOR, 40)
+    call BuildUpgr(3, uUPG_CR_ATTACK, 40)
+    call BuildUpgr(3, uUPG_CR_ARMOR, 40)
 
     call DefendTownsDone(2, uZIGGURAT_2, 65)
     if tier >= 2 then
