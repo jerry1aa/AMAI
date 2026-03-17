@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - Commander: force attack commands that can override retreat behavior during player-commanded attacks.
+- Documented persistent agent preferences in AGENTS.md.
 
 ### Changed
 - All attack and defense upgrades are always requested per race: Human (melee, armor, ranged, leather), Orc (melee, armor, ranged), Undead (unholy str/armor, crypt attack/armor), Night Elf (moon str/armor, wild str/armor, bows); probabilistic BuildAdvUpgr2 replaced with unconditional BuildUpgr so the AI consistently researches them.

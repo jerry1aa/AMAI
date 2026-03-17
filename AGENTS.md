@@ -43,3 +43,8 @@ Note: these are example commands for a developer. The exact batch script you sho
 # Build the Electron main (TypeScript compile)
 # npm run electron:build
 ```
+
+## Agent preferences (persistent)
+
+- When the user says `git push`, first run `git pull --no-rebase` (merge), then push.
+- When executing a plan, save it under `docs/plan/` with a date in the filename (default `YYYY-MM-DD`).
