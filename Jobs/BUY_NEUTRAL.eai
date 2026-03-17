@@ -10,7 +10,7 @@ function BuyNeutral takes integer id returns nothing
   local integer nn = GetNeutralNumber(id)
   local unit buy_place = nearest_neutral[nn]
   local boolean place_guarded = neutral_guarded[nn]
-  local integer detectedenemies = GetLocationNonCreepStrength(GetUnitX(neutral_sent[nn]), GetUnitY(neutral_sent[nn]), 1000) 
+  local integer detectedenemies = 0
   local location l = null
 
   call DisplayToAllJobDebug("BUY_NEUTRAL JOB START")
@@ -29,6 +29,17 @@ function BuyNeutral takes integer id returns nothing
     endif
     call GroupAddUnit(unit_buying_merc, neutral_sent[nn])
   endif
+  if not IsUnitAIControllable(neutral_sent[nn]) then
+    call GroupRemoveUnit(unit_buying_merc, neutral_sent[nn])
+    set neutral_sent[nn] = null
+    set neutral_ordered[nn] = false
+    set buy_time_large[nn] = -1
+    set buy_time_small[nn] = -1
+    set retreat_home_n = false
+    set buy_place = null
+    return
+  endif
+  set detectedenemies = GetLocationNonCreepStrength(GetUnitX(neutral_sent[nn]), GetUnitY(neutral_sent[nn]), 1000)
   if retreat_home_n then
     set l = GetUnitLoc(neutral_sent[nn])
     if DistanceBetweenPoints(l, home_location) >= 1100 then

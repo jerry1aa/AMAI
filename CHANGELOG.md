@@ -23,6 +23,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Fix Commander cancel commands so `Cancel Attack` and `Cancel All` now immediately stop active attacks (including selected-unit attacks) instead of only clearing queued flags.
 - Commander confirmation chat for Attack/Force Attack now includes target details (player name, map coordinates, or selected-unit marker).
 - Prevent unit/hero control conflicts: if any allied human selects an AI unit or hero, AMAI detaches guard control and pauses both micro logic and queued unit jobs for that unit, then resumes AI control 5 seconds after deselection.
+- Keep player-control locks active during heavy combat by running a dedicated selection-lock refresh thread, so selected units/heroes stay under player control even when battle jobs are busy.
+- Battle control respects player-selected locks: focus-fire micro and forced retreat/send-home logic now skip selected/locked AI units and heroes.
+- Shopping control respects player-selected locks: item-shop, neutral-merc, and neutral-hero buy jobs now cancel/skip for selected heroes/units so shop behavior does not override player input.
 
 ## [3.6.0] - 2026-02-08
 

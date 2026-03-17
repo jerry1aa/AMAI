@@ -48,8 +48,7 @@ function BuyItemJob takes integer id returns nothing
   local real dist = 0
   local location l = null
   local boolean healing = false
-
-local integer detectedenemies = GetLocationNonCreepStrength(GetUnitX(shop_sent), GetUnitY(shop_sent), 1000) 
+  local integer detectedenemies = 0
 
  call DisplayToAllJobDebug("BUY_ITEM JOB START")
 
@@ -82,6 +81,18 @@ local integer detectedenemies = GetLocationNonCreepStrength(GetUnitX(shop_sent),
     endif
 	call GroupAddUnit(unit_buying_item, shop_sent)
   endif
+
+  if not IsUnitAIControllable(shop_sent) then
+    call GroupRemoveUnit(unit_buying_item, shop_sent)
+    set shop_sent = null
+    set shop_ordered = false
+    set shop_buy_time_large = -1
+    set shop_buy_time_small = -1
+    set retreat_home = false
+    return
+  endif
+
+  set detectedenemies = GetLocationNonCreepStrength(GetUnitX(shop_sent), GetUnitY(shop_sent), 1000)
  
    //call CreateDebugTag("In BUT ITEM JOB, 10, shop_sent, 3.00, 1.50) 
 

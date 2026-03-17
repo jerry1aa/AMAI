@@ -1830,6 +1830,9 @@ function MarkUnitPlayerControlled takes unit u returns nothing
   call GroupRemoveUnit(unit_rescueing, u)
   call GroupRemoveUnit(unit_harassing, u)
   call GroupRemoveUnit(unit_zepplin_move, u)
+  call GroupRemoveUnit(focus_fire_group, u)
+  call GroupRemoveUnit(windwalk_group, u)
+  call GroupRemoveUnit(micro_ranged_group, u)
   call StoreInteger(amaiCache, Int2Str(PLAYER_CONTROL_LOCK), Int2Str(GetHandleId(u)), now + PLAYER_CONTROL_LOCK_DURATION)
 endfunction
 
@@ -4249,6 +4252,23 @@ function SelectByUnitFree takes group rg, boolean has_data returns group
   return rg
 endfunction
 
+function SelectByAIControllable takes group rg, boolean has_data returns group
+  local unit u = null
+  local group g = rg
+  set rg = CreateGroup()
+  loop
+    set u = FirstOfGroup(g)
+    exitwhen u == null
+    if IsUnitAIControllable(u) == has_data then
+      call GroupAddUnit(rg, u )
+    endif
+    call GroupRemoveUnit(g, u )
+  endloop
+  call DestroyGroup(g)
+  set g = null
+  return rg
+endfunction
+
 //==========================================================================
 // (AMAI)	SelectByOrder
 //==========================================================================
@@ -5179,7 +5199,7 @@ function GetUnitToBuy takes unit ru, unit buy_place returns unit
   loop
     set u = FirstOfGroup(g)
     exitwhen u == null
-    if not IsUnitType(u, UNIT_TYPE_STRUCTURE) and u != follow_zeppelin and not IsUnitLoaded(u) and not IsUnitType(u, UNIT_TYPE_PEON) and not IsUnitType(u, UNIT_TYPE_SUMMONED) and not IsUnitIllusion(u) and GetUnitState(u, UNIT_STATE_LIFE) > 0 and not IsUnitInGroup(u, unit_buying_item) and not IsUnitInGroup(u, unit_buying_merc) and not IsUnitInGroup(u, unit_rescueing) then
+    if not IsUnitType(u, UNIT_TYPE_STRUCTURE) and u != follow_zeppelin and not IsUnitLoaded(u) and not IsUnitType(u, UNIT_TYPE_PEON) and not IsUnitType(u, UNIT_TYPE_SUMMONED) and not IsUnitIllusion(u) and GetUnitState(u, UNIT_STATE_LIFE) > 0 and IsUnitAIControllable(u) and not IsUnitInGroup(u, unit_buying_item) and not IsUnitInGroup(u, unit_buying_merc) and not IsUnitInGroup(u, unit_rescueing) then
       set newdistance = DistanceBetweenUnits(buy_place, u)
       if newdistance < distance then
         set distance = newdistance
@@ -7742,7 +7762,7 @@ function GetHeroToBuyItem takes unit shop, real limit, boolean is_healing_includ
   loop
     exitwhen i > 3
     if hero_built[i] and UnitAlive(hero_unit[i]) then
-     if GetSlotsFreeOnUnit(hero_unit[i]) > 0 and DistanceBetweenUnits(hero_unit[i], shop) < limit and not IsUnitInGroup(hero_unit[i], unit_buying_tavern) and not IsUnitInGroup(hero_unit[i], unit_buying_merc) and not IsUnitInGroup(hero_unit[i], unit_harassing) then
+     if IsUnitAIControllable(hero_unit[i]) and GetSlotsFreeOnUnit(hero_unit[i]) > 0 and DistanceBetweenUnits(hero_unit[i], shop) < limit and not IsUnitInGroup(hero_unit[i], unit_buying_tavern) and not IsUnitInGroup(hero_unit[i], unit_buying_merc) and not IsUnitInGroup(hero_unit[i], unit_harassing) then
        if is_healing_included == true and IsUnitInGroup(hero_unit[i], unit_healing) then
        else
           return hero_unit[i]
@@ -8860,6 +8880,29 @@ function cmd_loop takes nothing returns nothing
 
 endfunction
 
+//============================================================================
+// Ensure player-control locks are refreshed even when battle jobs are busy.
+function PlayerControlLockLoop takes nothing returns nothing
+  local group g = CreateGroup()
+  local unit u = null
+  call StaggerSleep(0,2)
+  loop
+    exitwhen player_defeated
+    call GroupEnumUnitsOfPlayer(g, ai_player, null)
+    loop
+      set u = FirstOfGroup(g)
+      exitwhen u == null
+      if UnitAlive(u) and not IsUnitType(u, UNIT_TYPE_STRUCTURE) then
+        call IsUnitAIControllable(u)
+      endif
+      call GroupRemoveUnit(g, u)
+    endloop
+    call Sleep(0.25 * sleep_multiplier)
+  endloop
+  call DestroyGroup(g)
+  set g = null
+endfunction
+
 //===========================================================================
 function InitCheckHarvest takes nothing returns nothing
   local group g = CreateGroup()
@@ -9395,6 +9438,7 @@ function AMAI takes code heroes, code peons, code attacks returns nothing
   call StartThread(attacks)
   //call Trace("attacks")
   call StartThread(function cmd_loop)
+  call StartThread(function PlayerControlLockLoop)
   //call Trace("cmd_loop")
 endfunction
 

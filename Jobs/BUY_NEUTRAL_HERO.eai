@@ -34,6 +34,17 @@ function BuyNeutralHero takes integer id returns nothing
     set buying_unit = null
   endif
 
+  if buying_unit != null and not IsUnitAIControllable(buying_unit) then
+    call GroupRemoveUnit(unit_buying_tavern, buying_unit)
+    set neutral_sent[nn] = null
+    set neutral_ordered[nn] = false
+    set buy_time_large[nn] = -1
+    set buy_time_small[nn] = -1
+    set buying_unit = null
+    set tavern = null
+    return
+  endif
+
   if place_guarded and daytime >= 5 and daytime < 18 then
     set time_next_try = (18 - daytime)*20
   else
@@ -51,6 +62,16 @@ function BuyNeutralHero takes integer id returns nothing
         call RemoveGuardPosition(buying_unit)
         call Trace("unit for neutral hero obtained")
       endif
+    endif
+    if buying_unit != null and not IsUnitAIControllable(buying_unit) then
+      call GroupRemoveUnit(unit_buying_tavern, buying_unit)
+      set neutral_sent[nn] = null
+      set neutral_ordered[nn] = false
+      set buy_time_large[nn] = -1
+      set buy_time_small[nn] = -1
+      set buying_unit = null
+      set tavern = null
+      return
     endif
     call GroupAddUnit(unit_buying_merc, buying_unit)
 
