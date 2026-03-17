@@ -8457,11 +8457,12 @@ endfunction
 //===========================================================================
 function cmd_cancel takes integer cmd, integer data returns nothing
   if cmd == 0 then		// Cancel all orders
-    set break_attack = false
-    set go_home = false
+    set break_attack = true
+    set go_home = true
     set strategy = chosen_strategy
     set attack_player = false
     set attack_point = false
+    set attack_unit = false
     set no_attack = false
     set no_creep_attack = false
     set no_player_attack = false
@@ -8474,8 +8475,11 @@ function cmd_cancel takes integer cmd, integer data returns nothing
     call Trace("Cancel Build Command" )
 
   elseif cmd == 2 then	// Cancel attacking orders
+    set break_attack = true
+    set go_home = true
     set attack_player = false
     set attack_point = false
+    set attack_unit = false
     set no_attack = false
     set no_creep_attack = false
     set no_player_attack = false
@@ -8757,7 +8761,7 @@ function cmd_loop takes nothing returns nothing
     if cmd < 10 then
       call cmd_cancel(cmd, data)
 
-    elseif cmd < 20 then
+    elseif cmd < 20 or (cmd >= 40 and cmd < 43) then
       call cmd_attack(cmd, data)
 
     elseif cmd < 30 then

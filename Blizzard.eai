@@ -825,6 +825,7 @@ function ExecuteCommand takes player Comp, integer number returns nothing
   local integer par1 = GetParValue(command_par1[number])
   local integer par2 = GetParValue(command_par2[number])
   local integer par3 = GetParValue(command_par3[number])
+  local string target_info = ""
   
   if cn == -1000000 or par1 == -1000000 or par2 == -1000000 or par3 == -1000000 then
     return
@@ -838,7 +839,19 @@ function ExecuteCommand takes player Comp, integer number returns nothing
     call CommandAI(Comp, cn, par1)
   endif
 
-  call DisplayFromPlayer(Comp, command_msg[number])
+  if cn == 12 or cn == 40 then
+    if par1 >= 0 and par1 < GetBJMaxPlayers() then
+      set target_info = " (target: " + GetPlayerName(Player(par1)) + ")"
+    else
+      set target_info = " (target: player " + I2S(par1) + ")"
+    endif
+  elseif cn == 13 or cn == 41 then
+    set target_info = " (target: " + I2S(par2) + "," + I2S(par3) + ")"
+  elseif cn == 16 or cn == 42 then
+    set target_info = " (target: selected unit)"
+  endif
+
+  call DisplayFromPlayer(Comp, command_msg[number] + target_info)
 endfunction
 
 function ExecuteCommandForAll takes integer number returns nothing
@@ -875,6 +888,7 @@ function ExecuteDlgCommand takes player Comp, integer number returns nothing
   local integer par1 = GetDlgParValue(command_par1[number])
   local integer par2 = GetDlgParValue(command_par2[number])
   local integer par3 = GetDlgParValue(command_par3[number])
+  local string target_info = ""
   
   if command_par2[number] != -1 then  
     call CommandAI(Comp, par2, par3)
@@ -883,7 +897,19 @@ function ExecuteDlgCommand takes player Comp, integer number returns nothing
     call CommandAI(Comp, cn, par1)
   endif
 
-  call DisplayFromDlg(command_msg[number])
+  if cn == 12 or cn == 40 then
+    if par1 >= 0 and par1 < GetBJMaxPlayers() then
+      set target_info = " (target: " + GetPlayerName(Player(par1)) + ")"
+    else
+      set target_info = " (target: player " + I2S(par1) + ")"
+    endif
+  elseif cn == 13 or cn == 41 then
+    set target_info = " (target: " + I2S(par2) + "," + I2S(par3) + ")"
+  elseif cn == 16 or cn == 42 then
+    set target_info = " (target: selected unit)"
+  endif
+
+  call DisplayFromDlg(command_msg[number] + target_info)
 endfunction
 
 function ExecuteDlgCommandForAll takes integer number returns nothing
