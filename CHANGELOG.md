@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Keep player-control locks active during heavy combat by running a dedicated selection-lock refresh thread, so selected units/heroes stay under player control even when battle jobs are busy.
 - Battle control respects player-selected locks: focus-fire micro and forced retreat/send-home logic now skip selected/locked AI units and heroes.
 - Shopping control respects player-selected locks: item-shop, neutral-merc, and neutral-hero buy jobs now cancel/skip for selected heroes/units so shop behavior does not override player input.
+- Reduce unsafe hero overchase during local battle focus-fire: heroes now skip aggressive local focus targets when they are overextended from army support or locally outnumbered.
 
 ## [3.6.0] - 2026-02-08
 
