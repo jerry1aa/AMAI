@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - Ensure all peons for pre-existing expansions are trained before expanding again.
+- Fix build failure caused by a function parameter named `force` conflicting with the JASS `force` type.
 
 ## [3.6.0] - 2026-02-08
 

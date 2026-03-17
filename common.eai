@@ -8408,10 +8408,10 @@ function DisableRetreatControlAM takes nothing returns nothing
 endfunction
 
 //============================================================================
-function SetCommandedAttackFlags takes boolean force returns nothing
+function SetCommandedAttackFlags takes boolean force_attack returns nothing
   set commanded_attack_active = true
-  set commanded_attack_force = force
-  if force then
+  set commanded_attack_force = force_attack
+  if force_attack then
     call DisableRetreatControlAM()
   endif
 endfunction
