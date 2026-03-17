@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - Commander: force attack commands that can override retreat behavior during player-commanded attacks.
+- Commander: `SHOW COMMAND` command to report current AI command state (attack target/mode, queue state, and active attack restrictions).
 - Documented persistent agent preferences in AGENTS.md.
 
 ### Changed

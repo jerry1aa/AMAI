@@ -27,6 +27,8 @@ Here are some more Commands for Ally use
 --Will cause that ally either to attack/guard the center of your current screen position or Selected Computer.
 -cmd: (Ally) force attack <Here, Select, or (Enemy)>
 --Will cause that ally to force attack/guard the target without retreating to town.
+-cmd: (Ally) show command
+--Displays the ally AI's current command status (attack/queue/restrictions).
 PAUSE
 Here are the Queue Commands
 -cmd: (Ally) que <Start or Restart>

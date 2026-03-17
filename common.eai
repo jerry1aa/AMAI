@@ -3418,6 +3418,83 @@ function GetCurrentDynamicReport takes nothing returns string
 endfunction
 
 //============================================================================
+function GetCurrentCommandReport takes nothing returns string
+  local string report = "Current command: "
+  local string command_status = ""
+  local string restriction_status = ""
+  local unit u = null
+  local player p = null
+  if queue_running then
+    if queue_attack_p then
+      set command_status = "Queue attack point (" + Int2Str(queue_t_x) + "," + Int2Str(queue_t_y) + ")"
+    elseif queue_attack_u then
+      if queue_t_u == null then
+        set command_status = "Queue attack unit (none)"
+      elseif UnitAlive(queue_t_u) then
+        set command_status = "Queue attack unit (" + GetUnitName(queue_t_u) + ")"
+      else
+        set command_status = "Queue attack unit (dead)"
+      endif
+    else
+      set command_status = "Queue running"
+    endif
+  elseif attack_player then
+    if attack_target_p >= 0 and attack_target_p < GetBJMaxPlayers() then
+      set p = Player(attack_target_p)
+      set command_status = "Attack player (" + GetPlayerName(p) + ")"
+    else
+      set command_status = "Attack player (" + Int2Str(attack_target_p) + ")"
+    endif
+  elseif attack_point then
+    set command_status = "Attack point (" + Int2Str(attack_target_x) + "," + Int2Str(attack_target_y) + ")"
+  elseif attack_unit then
+    set u = target_unit
+    if u == null then
+      set command_status = "Attack unit (none)"
+    elseif UnitAlive(u) then
+      set command_status = "Attack unit (" + GetUnitName(u) + ")"
+    else
+      set command_status = "Attack unit (dead)"
+    endif
+  else
+    set command_status = "No active commander attack command"
+  endif
+
+  set report = report + command_status
+
+  if commanded_attack_active then
+    if commanded_attack_force then
+      set report = report + " [force]"
+    else
+      set report = report + " [normal]"
+    endif
+  endif
+
+  if queue_running then
+    set report = report + " | queue on"
+  else
+    set report = report + " | queue off"
+  endif
+
+  if no_attack then
+    set restriction_status = restriction_status + " | no attacks"
+  endif
+  if no_creep_attack then
+    set restriction_status = restriction_status + " | no creep"
+  endif
+  if no_player_attack then
+    set restriction_status = restriction_status + " | no players"
+  endif
+  if restriction_status == "" then
+    set restriction_status = " | restrictions off"
+  endif
+
+  set p = null
+  set u = null
+  return report + restriction_status
+endfunction
+
+//============================================================================
 //  (AMAI)    Chat function
 //============================================================================
 function QueueChat takes string text, player p, boolean important returns nothing
@@ -8811,6 +8888,9 @@ function cmd_misc takes integer cmd, integer data returns nothing
 
   elseif cmd == 61 then // Show all strats
     call DisplayStratNames()
+
+  elseif cmd == 62 then // Show current command
+    call DisplayToAllies(GetCurrentCommandReport())
 
   elseif cmd == 70 then // change strategy
     if data < rp_strat_length then

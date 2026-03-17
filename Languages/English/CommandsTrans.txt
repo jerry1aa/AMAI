@@ -1,1 +1,2 @@
 To be translated	Translation
+Showing current command state.	Showing current command state.
