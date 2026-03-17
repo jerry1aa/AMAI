@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Fix Commander force-attack commands: IDs 40/41/42 are now dispatched correctly, and chat syntax for force attacking a specific player now reads the target player argument correctly.
 - Fix Commander cancel commands so `Cancel Attack` and `Cancel All` now immediately stop active attacks (including selected-unit attacks) instead of only clearing queued flags.
 - Commander confirmation chat for Attack/Force Attack now includes target details (player name, map coordinates, or selected-unit marker).
+- Prevent unit/hero control conflicts: if any allied human selects an AI unit or hero, AMAI detaches guard control and pauses both micro logic and queued unit jobs for that unit, then resumes AI control 5 seconds after deselection.
 
 ## [3.6.0] - 2026-02-08
 

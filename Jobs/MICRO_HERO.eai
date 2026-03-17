@@ -291,6 +291,10 @@ function MicroHeroJob takes integer hn returns nothing
   
   call DisplayToAllJobDebug("MICRO_HERO Job start")
   if UnitAlive(hero_unit[hn]) then
+    if not IsUnitAIControllable(hero_unit[hn]) then
+      call TQAddJob(1 * sleep_multiplier, MICRO_HERO, hn)
+      return
+    endif
     set armyOfHero = GetArmyOfUnit(hero_unit[hn])
     // A Temporary Bug fix
     if HeroBugFixHealthCheck(hn) then

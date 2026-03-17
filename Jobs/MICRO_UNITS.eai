@@ -215,7 +215,9 @@ function MicroUnitsJob takes nothing returns nothing
       if id == 'ohwd' then
         set ward_check = true
       endif
-      if not IsUnitType(u, UNIT_TYPE_MECHANICAL) and (id == 'hphx' or not IsUnitType(u, UNIT_TYPE_SUMMONED)) and GetUnitState(u, UNIT_STATE_LIFE) < RMax(flee_health_percentage * GetUnitState(u, UNIT_STATE_MAX_LIFE), flee_minimum_health) then
+      if not IsUnitAIControllable(u) then
+        call GroupRemoveUnit(g, u)
+      elseif not IsUnitType(u, UNIT_TYPE_MECHANICAL) and (id == 'hphx' or not IsUnitType(u, UNIT_TYPE_SUMMONED)) and GetUnitState(u, UNIT_STATE_LIFE) < RMax(flee_health_percentage * GetUnitState(u, UNIT_STATE_MAX_LIFE), flee_minimum_health) then
         // leave in group to heal
       else
         call GroupRemoveUnit(g, u)
@@ -249,7 +251,9 @@ function MicroUnitsJob takes nothing returns nothing
     //endif
     set id = GetUnitTypeId(u)
     //if unit_life > 0 then
-    call SaveUnit(u,id)
+    if IsUnitAIControllable(u) then
+      call SaveUnit(u,id)
+    endif
     //endif
       //call DisplayToAllJobDebug("MICRO_UNITS: Main Loop")
       //set unitloc = GetUnitLoc(u)

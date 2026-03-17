@@ -911,6 +911,8 @@ globals
   constant integer GREETINGS_NUM = 1
   constant integer CHAT_LOCK = 2
   constant integer ALLIANCE_TARGET = 3
+  constant integer PLAYER_CONTROL_LOCK = 4
+  constant integer PLAYER_CONTROL_LOCK_DURATION = 50 // 5 seconds (deciseconds)
 
 	//gamecache settings = InitGameCache("AMAI_Set.w3v")
 
@@ -1788,6 +1790,79 @@ function RAbs takes real a returns real
   else
     return -a
   endif
+endfunction
+
+function GetControlLockTimeTick takes nothing returns integer
+  return R2I((TimerGetElapsed(tq_timer) * 10) + 0.5)
+endfunction
+
+function IsUnitSelectedByAlliedHuman takes unit u returns boolean
+  local integer i = 0
+  local player p = null
+  if u == null then
+    return false
+  endif
+  loop
+    exitwhen i >= c_ally_total
+    set p = ally_force[i]
+    if p != null and GetPlayerSlotState(p) == PLAYER_SLOT_STATE_PLAYING and GetPlayerController(p) == MAP_CONTROL_USER and not IsPlayerObserver(p) then
+      if IsUnitSelected(u, p) then
+        set p = null
+        return true
+      endif
+    endif
+    set i = i + 1
+  endloop
+  set p = null
+  return false
+endfunction
+
+function MarkUnitPlayerControlled takes unit u returns nothing
+  local integer now = 0
+  if u == null then
+    return
+  endif
+  set now = GetControlLockTimeTick()
+  if UnitAlive(u) then
+    call RemoveGuardPosition(u)
+  endif
+  call GroupRemoveUnit(unit_healing, u)
+  call GroupRemoveUnit(unit_rescueing, u)
+  call GroupRemoveUnit(unit_harassing, u)
+  call GroupRemoveUnit(unit_zepplin_move, u)
+  call StoreInteger(amaiCache, Int2Str(PLAYER_CONTROL_LOCK), Int2Str(GetHandleId(u)), now + PLAYER_CONTROL_LOCK_DURATION)
+endfunction
+
+function IsUnitControlLocked takes unit u returns boolean
+  local integer now = 0
+  local integer lock_until = 0
+  if u == null then
+    return false
+  endif
+  if not HaveStoredInteger(amaiCache, Int2Str(PLAYER_CONTROL_LOCK), Int2Str(GetHandleId(u))) then
+    return false
+  endif
+  set now = GetControlLockTimeTick()
+  set lock_until = GetStoredInteger(amaiCache, Int2Str(PLAYER_CONTROL_LOCK), Int2Str(GetHandleId(u)))
+  if now <= lock_until then
+    return true
+  endif
+  call FlushStoredInteger(amaiCache, Int2Str(PLAYER_CONTROL_LOCK), Int2Str(GetHandleId(u)))
+  if UnitAlive(u) then
+    call RecycleGuardPosition(u)
+  endif
+  return false
+endfunction
+
+function IsUnitAIControllable takes unit u returns boolean
+  if u == null then
+    return false
+  endif
+  if IsUnitSelectedByAlliedHuman(u) then
+    call MarkUnitPlayerControlled(u)
+    return false
+  endif
+  return not IsUnitControlLocked(u)
 endfunction
 
 // Ai Function
@@ -8006,12 +8081,17 @@ function TQHandleOnce takes nothing returns boolean
   if TimerGetElapsed(tq_timer) >= tq_time[1] then
     set jobtimings = TimerGetElapsed(tq_timer)
     call TQRemoveRoot()
-    if debugging > 0 then
-      call UpdateDebugTextTag(debugjobtag, Int2Str(jid), 24, GetLocationX(home_location) + 300, GetLocationY(home_location) + 300)
-    endif
-    call TQDoJob(jid, par, unit_par, group_par, unit_par2)
-    if jobtimings - TimerGetElapsed(tq_timer) >= 1 then
-      call Trace("WARN: Job " + Int2Str(jid) + " took a long time " + Real2Str(jobtimings - TimerGetElapsed(tq_timer)) + "s")
+    if unit_par != null and UnitAlive(unit_par) and not IsUnitAIControllable(unit_par) then
+      // Human currently controls this unit, postpone unit job until lock expires.
+      call TQAddJobEx(TimerGetElapsed(tq_timer) + (1 * sleep_multiplier), jid, par, unit_par, group_par, unit_par2)
+    else
+      if debugging > 0 then
+        call UpdateDebugTextTag(debugjobtag, Int2Str(jid), 24, GetLocationX(home_location) + 300, GetLocationY(home_location) + 300)
+      endif
+      call TQDoJob(jid, par, unit_par, group_par, unit_par2)
+      if jobtimings - TimerGetElapsed(tq_timer) >= 1 then
+        call Trace("WARN: Job " + Int2Str(jid) + " took a long time " + Real2Str(jobtimings - TimerGetElapsed(tq_timer)) + "s")
+      endif
     endif
     set b = true
   endif

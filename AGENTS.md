@@ -15,6 +15,8 @@
 - Do not edit generated artifacts in `Scripts/` directly — change source `.eai` files and re-run the project build to regenerate compiled output.
 - `Common.j`, `Natives.j` and `Blizzard.j` are built-in war3 code do not make changes to them, they are for reference to hardcoded functions and building.
 - Update the CHANGELOG.md when changes are made.
+- When the user says `git push`, first run `git pull --no-rebase` (merge), then push.
+- When executing a plan, save it under `docs/plan/` with a date + daily index in the filename to distinguish same-day plans (default `YYYY-MM-DD-01`, then `YYYY-MM-DD-02`, etc.).
 
 ## Useful file locations
 
@@ -44,7 +46,3 @@ Note: these are example commands for a developer. The exact batch script you sho
 # npm run electron:build
 ```
 
-## Agent preferences (persistent)
-
-- When the user says `git push`, first run `git pull --no-rebase` (merge), then push.
-- When executing a plan, save it under `docs/plan/` with a date in the filename (default `YYYY-MM-DD`).
