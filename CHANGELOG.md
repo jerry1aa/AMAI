@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Commander `SHOW COMMAND` now reports both player-issued commander orders and the AI's current autonomous battle state, including focus target and strategy context.
 - Commander `SHOW COMMAND` now shows attack target detail for `AI command: Attacking`, reporting player/unit/point targets or the captain attack position instead of focus-fire context.
 - Commander `SHOW COMMAND` now distinguishes active `strategy` from `chosen_strategy`, showing both when a temporary strategy override is active.
+- AI now notifies allies when its current AI command report changes, including attack, defend, retreat, idle/regrouping, and updated attack-target detail.
 
 ### Fixed
 - Ensure all peons for pre-existing expansions are trained before expanding again.

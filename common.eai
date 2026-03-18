@@ -973,6 +973,7 @@ globals
     integer queue_t_x		= 0
     integer queue_t_y		= 0
     unit	queue_t_u = null
+    string last_ai_command_state_report = ""
     
     real lastcaptainx = 0
     real lastcaptainy = 0
@@ -3561,6 +3562,28 @@ function GetCurrentAICommandReport takes nothing returns string
   set p = null
   set u = null
   return report + attack_detail + strategy_status
+endfunction
+
+//============================================================================
+function ReportAICommandStateChange takes boolean suppress_initial returns nothing
+  local string report = ""
+  set report = GetCurrentAICommandReport()
+  if report == null or report == "" then
+    return
+  endif
+  if last_ai_command_state_report == "" then
+    set last_ai_command_state_report = report
+    if suppress_initial then
+      return
+    endif
+    call DisplayToAllies(report)
+    return
+  endif
+  if report == last_ai_command_state_report then
+    return
+  endif
+  set last_ai_command_state_report = report
+  call DisplayToAllies(report)
 endfunction
 
 //============================================================================
@@ -13314,6 +13337,9 @@ function AttackMoveKillAAM takes unit target, boolean ally_override returns noth
     return
   endif
   set attack_running = true
+  set lastcaptainx = GetUnitX(target)
+  set lastcaptainy = GetUnitY(target)
+  call ReportAICommandStateChange(false)
   call DoAttackJobs()
   if distraction_group != 0 and GetOwningPlayer(target) != Player(PLAYER_NEUTRAL_AGGRESSIVE) and GetRandomInt(1,10) < 5 then
     if GetHarassGroupStrength(distraction_group) < GetOwnStrength() / 3 then
@@ -13352,14 +13378,15 @@ endfunction
 //============================================================================
 function AttackMoveKillXYAAM takes integer x, integer y returns nothing
   set attack_running = true
+  set lastcaptainx = x
+  set lastcaptainy = y
+  call ReportAICommandStateChange(false)
   call DoAttackJobs()
   if zep_next_wave then
     call LoadZepWave(x,y)
     set zep_next_wave = false
   endif
   call AttackMoveXY(x,y)
-  set lastcaptainx = x
-  set lastcaptainy = y
   call SleepUntilAtGoalAM()
   call SleepInCombatAM(true)
   set attack_running = false
