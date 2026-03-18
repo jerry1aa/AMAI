@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Commander `SHOW COMMAND` now distinguishes active `strategy` from `chosen_strategy`, showing both when a temporary strategy override is active.
 - AI now notifies allies when its current AI command report changes, including attack, defend, retreat, idle/regrouping, and updated attack-target detail.
 - Shared attack and creep pacing is faster: regroup delays, point-goal polling, target-death polling, post-combat linger, and expansion-creep follow-up waits are all reduced so the AI chains actions more quickly without changing retreat logic.
+- Mid-attack regrouping now keeps far reinforcements separate from the active assault group: distant new units move toward the main army first and only join once they are near enough, reducing long stalls at enemy positions.
 
 ### Fixed
 - Ensure all peons for pre-existing expansions are trained before expanding again.

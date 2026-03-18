@@ -484,6 +484,8 @@ globals
     integer post_combat_loot_cycles = 2
     real post_attack_handoff_delay = 0.5
     real post_expansion_creep_delay = 2.0
+    real reinforcement_join_radius = 900
+    real reinforcement_move_radius = 5000
     
     real time_of_day = 0
     
@@ -13014,6 +13016,154 @@ function FastFromGroupAndGhoulsAM takes real seconds returns nothing
   call FastFormGroupAM(seconds)
 endfunction
 
+function GetCurrentAssaultType takes integer unitid returns integer
+  #INCLUDETABLE <$VER$\UnitEquivalence.txt> #EFR #COND "%2" eq "UPGRADED_TO"
+    if unitid == u%1 and GetUpgradeLevel(o%4) >= %5 then
+      set unitid = u%3
+    endif
+  #ENDINCLUDE
+  return unitid
+endfunction
+
+function GetAttackAnchorLoc takes nothing returns location
+  if main_army >= 0 and army_loc[main_army] != null and (GetLocationX(army_loc[main_army]) != 0 or GetLocationY(army_loc[main_army]) != 0) then
+    return Location(GetLocationX(army_loc[main_army]), GetLocationY(army_loc[main_army]))
+  elseif lastcaptainx != 0 or lastcaptainy != 0 then
+    return Location(lastcaptainx, lastcaptainy)
+  endif
+  return null
+endfunction
+
+function IsAttackRosterUnit takes unit u returns boolean
+  local integer i = 0
+  local integer unitid = 0
+  local integer currentid = GetUnitTypeId(u)
+  loop
+    exitwhen i >= attack_length
+    set unitid = GetCurrentAssaultType(attack_units[i])
+    if currentid == old_id[unitid] then
+      return true
+    endif
+    set i = i + 1
+  endloop
+  return false
+endfunction
+
+function CountNearbyAssaultUnits takes integer unitid, location anchor, real radius returns integer
+  local group g = CreateGroup()
+  local unit u = null
+  local integer count = 0
+  local integer currentid = old_id[GetCurrentAssaultType(unitid)]
+  call GroupEnumUnitsInRangeOfLoc(g, anchor, radius, null)
+  loop
+    set u = FirstOfGroup(g)
+    exitwhen u == null
+    if GetUnitTypeId(u) == currentid and UnitAlive(u) and not IsUnitHidden(u) and not IsUnitLoaded(u) and IsStandardUnit(u) and not IsUnitBuying(u) and IsUnitAIControllable(u) and not IsUnitType(u, UNIT_TYPE_PEON) and not IsUnitType(u, UNIT_TYPE_STRUCTURE) and GetUnitCurrentOrder(u) != OrderId("harvest") and GetUnitCurrentOrder(u) != OrderId("resumeharvesting") then
+      set count = count + 1
+    endif
+    call GroupRemoveUnit(g, u)
+  endloop
+  call DestroyGroup(g)
+  set g = null
+  set u = null
+  return count
+endfunction
+
+function FormNearbyGroupAM takes real radius returns nothing
+  local integer index = 0
+  local integer count = 0
+  local integer unitid = 0
+  local integer desire = 0
+  local location anchor = GetAttackAnchorLoc()
+
+  if anchor == null then
+    call FormGroupAM(0)
+    return
+  endif
+
+  call InitAssault()
+
+  loop
+    exitwhen index >= attack_length
+    set unitid = GetCurrentAssaultType(attack_units[index])
+    set desire = attack_max[index]
+
+    if GetWood() > minimum_peon_wood then
+      set take_all_ghouls_along = true
+    elseif GetWood() < minimum_peon_wood then
+      set take_all_ghouls_along = false
+    endif
+
+    set count = CountNearbyAssaultUnits(unitid, anchor, radius)
+
+    if unitid == racial_ghoul then
+      set attacking_ghouls = Max(Min(count, desire), 0)
+      call Trace("Nearby Attacking Ghouls Formed:" + Int2Str(attacking_ghouls))
+    endif
+
+    call ConversionsAM(desire, unitid)
+
+    if count >= desire then
+      call AddAssault(desire, old_id[unitid])
+    else
+      call AddAssault(count, old_id[unitid])
+    endif
+
+    set index = index + 1
+  endloop
+
+  call RemoveLocation(anchor)
+  set anchor = null
+endfunction
+
+function SendReinforcementsToArmy takes real join_radius, real move_radius returns nothing
+  local group g = CreateGroup()
+  local unit u = null
+  local location anchor = GetAttackAnchorLoc()
+  local location unitloc = null
+  local real distance = 0
+  local integer unit_army = -1
+  local real target_x = 0
+  local real target_y = 0
+
+  if anchor == null then
+    call DestroyGroup(g)
+    set g = null
+    return
+  endif
+
+  set target_x = GetLocationX(anchor)
+  set target_y = GetLocationY(anchor)
+  call GroupEnumUnitsOfPlayer(g, ai_player, null)
+
+  loop
+    set u = FirstOfGroup(g)
+    exitwhen u == null
+    if UnitAlive(u) and not IsUnitHidden(u) and not IsUnitLoaded(u) and IsStandardUnit(u) and not IsUnitBuying(u) and IsUnitAIControllable(u) and not IsUnitType(u, UNIT_TYPE_PEON) and not IsUnitType(u, UNIT_TYPE_STRUCTURE) and GetUnitCurrentOrder(u) != OrderId("harvest") and GetUnitCurrentOrder(u) != OrderId("resumeharvesting") and IsAttackRosterUnit(u) then
+      set unitloc = GetUnitLoc(u)
+      set distance = DistanceBetweenPoints(anchor, unitloc)
+      set unit_army = GetArmyOfUnit(u)
+      if distance > join_radius and distance <= move_radius and unit_army != main_army and GetLocationEnemyStrength(GetUnitX(u), GetUnitY(u), 900, true) <= 0 then
+        call IssuePointOrder(u, "move", target_x + GetRandomReal(-150, 150), target_y + GetRandomReal(-150, 150))
+      endif
+      call RemoveLocation(unitloc)
+      set unitloc = null
+    endif
+    call GroupRemoveUnit(g, u)
+  endloop
+
+  call DestroyGroup(g)
+  call RemoveLocation(anchor)
+  set g = null
+  set u = null
+  set anchor = null
+endfunction
+
+function RefreshAttackReinforcementsAM takes nothing returns nothing
+  call FormNearbyGroupAM(reinforcement_join_radius)
+  call SendReinforcementsToArmy(reinforcement_join_radius, reinforcement_move_radius)
+endfunction
+
 //============================================================================
 function EnableRetreatControl takes nothing returns nothing
   set break_attack = false
@@ -13117,7 +13267,7 @@ function SleepInCombatAM takes boolean ally_override returns nothing
         set attack_length_counter = attack_length_counter + 1
         if attack_length_counter > R2I(LinearInterpolation(30, 80, attack_reform_length, attack_reform_length * 10, FoodUsed())+0.5) then
             set attack_length_counter = 0
-            call FormGroupAM(0)
+            call RefreshAttackReinforcementsAM()
         endif
         if true or CaptainAtGoal() or (attack_length_counter == 0 and not CaptainInCombat(true)) or CaptainInCombat(true) or ally_override or c_ally_total == 0 then
           call AttackMoveKill(u) // Use existing troops
@@ -13346,12 +13496,11 @@ function CommonSleepUntilTargetDeadAM takes unit target, boolean iscreeping, boo
       endif
       if CaptainInCombat(true) and combat_length_counter > attack_reform_length then
         set combat_length_counter = 0
-        call FormGroupAM(0) // Safe in combat as reinforces while fight is ongoing
+        call RefreshAttackReinforcementsAM() // Refresh nearby assault units without stalling for far reinforcements
       elseif not CaptainInCombat(true) and attack_length_counter > R2I(LinearInterpolation(30, 80, attack_reform_length, attack_reform_length * 10, FoodUsed())+0.5) then // If a large army generally don't want to wait for reinforcements, so only reform occasionally
         set attack_length_counter = 0
         set combat_length_counter = 0 
-        //call TraceAll("Reform army")
-        call FormGroupAM(1)
+        call RefreshAttackReinforcementsAM()
       endif
     endif
   endloop
