@@ -195,6 +195,12 @@ function global_build_sequence takes nothing returns nothing
       call BuildUpgr(3, uUPG_UNHOLY_ARMOR, 40)
       call BuildUpgr(3, uUPG_CR_ATTACK, 40)
       call BuildUpgr(3, uUPG_CR_ARMOR, 40)
+      if GetGold() > 1200 and GetWood() > 500 then
+        call BuildUpgr(3, uUPG_UNHOLY_STR, 75)
+        call BuildUpgr(3, uUPG_UNHOLY_ARMOR, 70)
+        call BuildUpgr(3, uUPG_CR_ATTACK, 75)
+        call BuildUpgr(3, uUPG_CR_ARMOR, 70)
+      endif
       call BuildAdvUpgr2(1, uUPG_CANNIBALIZE,1,TownCountDone(uGHOUL) + TownCountDone(uABOMINATION), 0.33,15,75)
 
     // TIER 2 UPGRADES

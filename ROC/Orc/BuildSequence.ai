@@ -18,6 +18,11 @@ function global_build_sequence takes nothing returns nothing
           call BuildUpgr(3, uUPG_ORC_MELEE, 40)
           call BuildUpgr(3, uUPG_ORC_ARMOR, 40)
           call BuildUpgr(3, uUPG_ORC_RANGED, 40)
+          if GetGold() > 1200 and GetWood() > 500 then
+            call BuildUpgr(3, uUPG_ORC_MELEE, 75)
+            call BuildUpgr(3, uUPG_ORC_ARMOR, 70)
+            call BuildUpgr(3, uUPG_ORC_RANGED, 75)
+          endif
 
           // Global upgrades
           if TownCountDone(uGRUNT) > 5 and tier > 1 then

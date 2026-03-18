@@ -11159,10 +11159,6 @@ function StartUpgradeAM takes integer level, integer upgid returns integer
   if ai_time < upgrade_time[upgid] then
     return BUILT_SOME // Staggers upgrades a bit so we don't keep consuming gold and wood for upgrade in progress, if upgrading then above check will detect it when complete. If not then upgrade failed for some reason or has multiple levels and will eventually retry.
   endif
-  
-  if town_threatened then
-    return BUILT_SOME // ignore upgrades and build units instead
-  endif
 
   set gold_cost = GetUpgradeGoldCost(old_id[upgid])
   set wood_cost = GetUpgradeWoodCost(old_id[upgid])
