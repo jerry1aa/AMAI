@@ -159,6 +159,9 @@ function HeroCanFocusFireTarget takes unit u, unit target returns boolean
   local integer hn = 0
   local integer armyid = -1
   local location targetloc = null
+  local real current_hp = 0
+  local real max_hp = 0
+  local real min_focus_fire_hp = 0
   local real hero_army_dist = 0
   local real target_army_dist = 0
   local real max_hero_army_dist = normal_battle_radius * 0.60
@@ -169,6 +172,12 @@ function HeroCanFocusFireTarget takes unit u, unit target returns boolean
   endif
   if not IsUnitType(u, UNIT_TYPE_HERO) then
     return true
+  endif
+  set max_hp = GetUnitState(u, UNIT_STATE_MAX_LIFE)
+  set current_hp = GetUnitState(u, UNIT_STATE_LIFE)
+  set min_focus_fire_hp = RMax((flee_health_percentage + 0.40) * max_hp, flee_minimum_health * 2.00)
+  if current_hp < min_focus_fire_hp then
+    return false
   endif
   set hn = GetHeroNumberOfUnit(u)
   if hero_enemy_density[hn] > 1.50 and hero_enemy_density[hn] > hero_ally_density[hn] * 1.25 then
@@ -191,6 +200,56 @@ function HeroCanFocusFireTarget takes unit u, unit target returns boolean
   return true
 endfunction
 
+function HeroShouldContinueFocusFire takes unit u, unit target returns boolean
+  local integer hn = 0
+  local integer armyid = -1
+  local location targetloc = null
+  local real current_hp = 0
+  local real max_hp = 0
+  local real min_focus_fire_hp = 0
+  local real hero_army_dist = 0
+  local real target_army_dist = 0
+  local real hero_target_dist = 0
+  local real max_hero_army_dist = normal_battle_radius * 0.45
+  local real max_target_army_dist = normal_battle_radius * 0.55
+  local real max_hero_target_dist = normal_battle_radius * 0.30
+  if u == null or target == null then
+    return false
+  endif
+  if not IsUnitType(u, UNIT_TYPE_HERO) then
+    return true
+  endif
+  set max_hp = GetUnitState(u, UNIT_STATE_MAX_LIFE)
+  set current_hp = GetUnitState(u, UNIT_STATE_LIFE)
+  set min_focus_fire_hp = RMax((flee_health_percentage + 0.40) * max_hp, flee_minimum_health * 2.00)
+  if current_hp < min_focus_fire_hp then
+    return false
+  endif
+  set hn = GetHeroNumberOfUnit(u)
+  if hero_enemy_density[hn] > 1.25 and hero_enemy_density[hn] > hero_ally_density[hn] * 1.10 then
+    return false
+  endif
+  set armyid = GetArmyOfUnit(u)
+  if armyid >= 0 and army_loc[armyid] != null and hero_loc[hn] != null then
+    set targetloc = GetUnitLoc(target)
+    set hero_army_dist = DistanceBetweenPoints_kd(hero_loc[hn], army_loc[armyid])
+    set target_army_dist = DistanceBetweenPoints_kd(targetloc, army_loc[armyid])
+    set hero_target_dist = DistanceBetweenPoints_kd(hero_loc[hn], targetloc)
+    call RemoveLocation(targetloc)
+    set targetloc = null
+    if hero_army_dist > max_hero_army_dist then
+      return false
+    endif
+    if target_army_dist > max_target_army_dist then
+      return false
+    endif
+    if hero_target_dist > max_hero_target_dist then
+      return false
+    endif
+  endif
+  return true
+endfunction
+
 function FilterUnsafeHeroesFromFocusGroup takes group g, unit target returns nothing
   local unit u = null
   local group ug = CopyGroup(g)
@@ -199,6 +258,22 @@ function FilterUnsafeHeroesFromFocusGroup takes group g, unit target returns not
     exitwhen u == null
     if IsUnitType(u, UNIT_TYPE_HERO) and not HeroCanFocusFireTarget(u, target) then
       call CreateDebugTag("FF: hero hold", 10, u, 1.00, 0.80)
+      call GroupRemoveUnit(g, u)
+    endif
+    call GroupRemoveUnit(ug, u)
+  endloop
+  call DestroyGroup(ug)
+  set ug = null
+endfunction
+
+function FilterHeroesBreakingChaseFromFocusGroup takes group g, unit target returns nothing
+  local unit u = null
+  local group ug = CopyGroup(g)
+  loop
+    set u = FirstOfGroup(ug)
+    exitwhen u == null
+    if IsUnitType(u, UNIT_TYPE_HERO) and not HeroShouldContinueFocusFire(u, target) then
+      call CreateDebugTag("FF: hero break chase", 10, u, 1.00, 0.80)
       call GroupRemoveUnit(g, u)
     endif
     call GroupRemoveUnit(ug, u)
@@ -261,6 +336,9 @@ function FocusFire takes unit u returns nothing
       endif
       set focus_fire_unit = u
     endif
+    call FilterHeroesBreakingChaseFromFocusGroup(temp_focus, u)
+  endif
+  if BlzGroupGetSize(temp_focus) > 0 then
     call CreateDebugTag("FF: here:" + Int2Str(BlzGroupGetSize(temp_focus)), 10, u, 1.00, 0.80)
     call FocusGroupRemoveGuard(temp_focus) // Not currently fully controlling focus fire 
     call GroupTargetOrder(temp_focus, "attack", u)

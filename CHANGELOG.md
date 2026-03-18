@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Orc weapon and armor upgrades now get a rich-economy priority boost across TFT, ROC, and REFORGED when gold and lumber are high.
 - Undead graveyard and crypt attack/armor upgrades now get a rich-economy priority boost across TFT, ROC, and REFORGED when gold and lumber are high.
 - Night Elf moon/wild strength and armor upgrades now get a rich-economy priority boost across TFT, ROC, and REFORGED when gold and lumber are high.
+- Low-HP heroes now stop joining local focus-fire orders before they reach emergency flee range, reducing unsafe chase behavior.
+- Heroes now drop out of local focus-fire when a chase becomes unsafe, based on tighter HP, density, army-leash, and hero-target distance checks.
 - AI builds farms more proactively (more forecast): farm_food uses a +2 offset so farms are ordered when more food space is left; default farm_food raised to 12; farm_food2 set to 4 for all races so double-farm builds trigger earlier.
 - Additional peons needed for an expansion will start to be trained early.
 - Added boots of speed to all strategies.
