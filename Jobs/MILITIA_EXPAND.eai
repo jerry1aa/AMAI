@@ -54,6 +54,20 @@ local boolean buildend = false
 
 	call DisplayToAllJobDebug("MILITIA_EXPAND JOB START")
 
+	if no_creep_attack or ai_no_creep then
+		set militia_expanding = false
+		set militia_state = 0
+		set gold_buffer = 0
+		set wood_buffer = 0
+		set militia_expansion = null
+		if militia_loc != null then
+			call RemoveLocation(militia_loc)
+			set militia_loc = null
+		endif
+		call TQAddJob(80, MILITIA_EXPAND, 0)
+		return
+	endif
+
 	if towerrush or GetMinesOwned() >= 2 then  // have mine , peon need harvest
 		call TQAddJob(80, MILITIA_EXPAND, 0)
 		return

@@ -9,6 +9,9 @@
 function AncientExpansionCheck takes nothing returns nothing
   local unit u = null
   call TraceAll("ANCIENT_EXPANSION_CHECK JOB START")
+  if no_creep_attack or ai_no_creep then
+    return
+  endif
   if not ancient_expanding then
     if current_expansion != null and take_exp and not CheckExpansionTaken(current_expansion) then
       set u = GetExpFoe(u)

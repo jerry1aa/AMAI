@@ -13409,6 +13409,10 @@ function BRRush takes nothing returns boolean
   local unit utemp = null
   local group g = CreateGroup()
   local integer i = 0
+  if no_creep_attack or ai_no_creep then
+    set rushcreep_target = null
+    return false
+  endif
   call GroupEnumUnitsInRange(g,GetUnitX(rushcreep_target), GetUnitY(rushcreep_target),800,null)
   loop
     set u = FirstOfGroup(g)
@@ -14128,6 +14132,18 @@ function Militia_Expansion takes integer m returns nothing
   local unit u = null
   local unit efoe = null
   local integer t = 0
+  if no_creep_attack or ai_no_creep then
+    set militia_expanding = false
+    set militia_state = 0
+    set gold_buffer = 0
+    set wood_buffer = 0
+    set militia_expansion = null
+    if militia_loc != null then
+      call RemoveLocation(militia_loc)
+      set militia_loc = null
+    endif
+    return
+  endif
   set efoe = GetExpFoe(efoe)
   if efoe == null or IsUnitInGroup(current_expansion,water_expansion) then  //is WaterExpansion
     set efoe = null
@@ -14254,6 +14270,11 @@ function AncientExpaAttack takes nothing returns nothing
   local real attacktimer = 0
   local integer i = 0
   local real creepstrength = 0
+  if no_creep_attack or ai_no_creep then
+    set ancient_attack_running = false
+    set ancient_exp_state = 4
+    return
+  endif
   call Trace("An Ancient Expansion Attack")
   call RemoveGuardPosition(ancient_exp_unit)
   call IssueImmediateOrderById(ancient_exp_unit, OrderIdCancel)
@@ -14450,13 +14471,21 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
     // militia expansion
     //
     if militia_expanding then 
-      call Trace("A Militia Expansion")
-      if race_has_ghouls and race_ghouls_attack then
-        call FormGroupAM(0)
+      if no_creep_attack or ai_no_creep then
+        call Trace("Militia expansion creep attack disabled")
+        set militia_expanding = false
+        set militia_state = 0
+        set gold_buffer = 0
+        set wood_buffer = 0
+      else
+        call Trace("A Militia Expansion")
+        if race_has_ghouls and race_ghouls_attack then
+          call FormGroupAM(0)
+        endif
+        call Militia_Expansion(6)
+        set militia_expanding = false
+        return
       endif
-      call Militia_Expansion(6)
-      set militia_expanding = false
-      return
     endif
 
     // tower rush attack
@@ -14471,7 +14500,10 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
     // ancient expansion attack
     //
     if ancient_expanding and GetOwnStrength() >= GetAncientCampStrength() then
-      if ancient_exp_state == 3 and ancient_exp_unit != null then
+      if no_creep_attack or ai_no_creep then
+        call Trace("Ancient expansion creep attack disabled")
+        set ancient_exp_state = 4
+      elseif ancient_exp_state == 3 and ancient_exp_unit != null then
         call AncientExpaAttack()
         return
       elseif ancient_exp_state == 2 then
@@ -14480,13 +14512,15 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
       endif  
     endif
   
-  if rushcreep_target != null and UnitAlive(rushcreep_target) and GetLocationCreepStrength(GetUnitX(rushcreep_target), GetUnitY(rushcreep_target), 510) < own_strength + 5 then // Matches getOwnStrength +5 addition for ancient
+  if not (no_creep_attack or ai_no_creep) and rushcreep_target != null and UnitAlive(rushcreep_target) and GetLocationCreepStrength(GetUnitX(rushcreep_target), GetUnitY(rushcreep_target), 510) < own_strength + 5 then // Matches getOwnStrength +5 addition for ancient
     set battle_radius = creep_battle_radius 
     call Trace("ELF BR Attack")
     if BRRush() then
       return
     endif  
     set battle_radius = normal_battle_radius
+  elseif no_creep_attack or ai_no_creep then
+    set rushcreep_target = null
   endif
 
     // defend expansion from other expansion

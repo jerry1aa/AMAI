@@ -22,6 +22,9 @@ endfunction
 function AncientExpansionJob takes nothing returns nothing
   local unit u = null
   call DisplayToAllJobDebug("ANCIENT_EXPANSION JOB STARTED")
+  if no_creep_attack or ai_no_creep then
+    set ancient_exp_state = 4
+  endif
 
   if ancient_exp_state == 4 or (ancient_exp_state == 3 and (ancient_exp_unit == null or GetUnitState(ancient_exp_unit, UNIT_STATE_LIFE) <= 0)) then
     call TraceAll("Ancient Exp Ended")
