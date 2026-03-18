@@ -3500,7 +3500,8 @@ function GetCurrentAICommandReport takes nothing returns string
   local string ai_status = ""
   local string attack_detail = ""
   local string strategy_status = ""
-  local string ai_strat_label = GetCurrentStrategyName()
+  local string active_label = ""
+  local string chosen_label = ""
   local unit u = null
   local player p = null
 
@@ -3544,8 +3545,17 @@ function GetCurrentAICommandReport takes nothing returns string
     endif
   endif
 
-  if ai_strat_label != "" then
-    set strategy_status = " | strategy " + ai_strat_label
+  set active_label = GetStrategyName(strategy)
+  if chosen_strategy >= 0 and chosen_strategy < rp_strat_length then
+    set chosen_label = GetStrategyName(chosen_strategy)
+  endif
+
+  if active_label != "" then
+    if strategy == chosen_strategy or chosen_label == "" then
+      set strategy_status = " | strategy " + active_label
+    else
+      set strategy_status = " | strategy " + active_label + " [active override] | chosen " + chosen_label
+    endif
   endif
 
   set p = null
