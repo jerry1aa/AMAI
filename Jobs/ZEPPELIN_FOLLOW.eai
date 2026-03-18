@@ -12,6 +12,7 @@ function ZeppelinFollowJob takes nothing returns nothing
     set g = CreateGroup()
     call GroupEnumUnitsOfPlayer(g, ai_player, null)
     set g = SelectById(g, old_id[neutral_zeppelin], true)
+    set g = SelectByAIControllable(g, true)
     //set g = SelectByOrderOr(g, 0, order_attack, true)
     set g = SelectByUnitStandard(g, true)
     set g = SelectByUnitFree(g, true)
@@ -41,6 +42,11 @@ function ZeppelinFollowJob takes nothing returns nothing
     set zeppelin_following = false
     return
   endif  
+  if not IsUnitAIControllable(follow_zeppelin) or not IsUnitAIControllable(major_hero) then
+    call TQAddJob(1 * sleep_multiplier, ZEPPELIN_FOLLOW, 0)
+    set zeppelin_following = false
+    return
+  endif
   call RemoveGuardPosition(follow_zeppelin)
   set zeppelin_following = true
   set dist = DistanceBetweenUnits(major_hero, follow_zeppelin)

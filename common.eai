@@ -3411,6 +3411,14 @@ function GetCurrentStrategyReport takes nothing returns string
   return GetStrategyReport(strategy)
 endfunction
 
+//============================================================================
+function GetPlayerReportLabel takes player p returns string
+  if p == null then
+    return "unknown"
+  endif
+  return ColorText(GetPlayerColor(p)) + " P" + Int2Str(GetPlayerId(p) + 1)
+endfunction
+
 function GetCurrentDynamicReport takes nothing returns string
   if strengthtext[chosen_counter] != null and no_counter == false then 
     return " " + chat_dynamic_counter + " " + ApplyTrans(strengthtext[chosen_counter])
@@ -3442,7 +3450,7 @@ function GetCurrentCommandReport takes nothing returns string
   elseif attack_player then
     if attack_target_p >= 0 and attack_target_p < GetBJMaxPlayers() then
       set p = Player(attack_target_p)
-      set command_status = "Attack player (" + GetPlayerName(p) + ")"
+      set command_status = "Attack player (" + GetPlayerReportLabel(p) + ")"
     else
       set command_status = "Attack player (" + Int2Str(attack_target_p) + ")"
     endif
@@ -3526,7 +3534,7 @@ function GetCurrentAICommandReport takes nothing returns string
     if attack_player then
       if attack_target_p >= 0 and attack_target_p < GetBJMaxPlayers() then
         set p = Player(attack_target_p)
-        set attack_detail = " | target player (" + GetPlayerName(p) + ")"
+        set attack_detail = " | target player (" + GetPlayerReportLabel(p) + ")"
       else
         set attack_detail = " | target player (" + Int2Str(attack_target_p) + ")"
       endif
@@ -11775,6 +11783,9 @@ endfunction
 
 //============================================================================
 function BuildMovePeonZeppelin takes unit peon, unit target returns boolean
+  if build_zeppelin == null or not IsUnitAIControllable(peon) or not IsUnitAIControllable(build_zeppelin) then
+    return false
+  endif
   if IsUnitInTransport(peon, build_zeppelin) then
     if DistanceBetweenUnits(build_zeppelin, target) > race_max_expa_mine_distance then
       call IssuePointOrder(build_zeppelin, "move", GetUnitX(target) + GetRandomReal(-200,200), GetUnitY(target) + GetRandomReal(-200,200))

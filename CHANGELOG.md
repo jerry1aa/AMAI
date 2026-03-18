@@ -23,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 - Ensure all peons for pre-existing expansions are trained before expanding again.
+- Fix AI command reports for player targets so they use stable player color/slot labels instead of unreliable runtime player-name strings.
+- Fix Zeppelin transport control conflicts: follow/rescue/build transport logic now respects player-selection locks on both the Zeppelin and its passenger.
 - Fix build failure caused by a function parameter named `force` conflicting with the JASS `force` type.
 - Fix Commander force-attack commands: IDs 40/41/42 are now dispatched correctly, and chat syntax for force attacking a specific player now reads the target player argument correctly.
 - Fix Commander cancel commands so `Cancel Attack` and `Cancel All` now immediately stop active attacks (including selected-unit attacks) instead of only clearing queued flags.

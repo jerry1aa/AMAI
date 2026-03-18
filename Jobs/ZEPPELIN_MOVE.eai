@@ -56,6 +56,11 @@ function ZeppelinMoveJob takes integer target, unit hu, group z returns nothing
     set zepdropping = false
     return
   endif
+  if not IsUnitAIControllable(zep) or not IsUnitAIControllable(hu) then
+    set zep = null
+    call TQAddGroupJob(1 * sleep_multiplier, ZEPPELIN_MOVE, target, hu, z)
+    return
+  endif
   set zeploc = GetUnitLoc(zep)
   set heroloc = GetUnitLoc(hu)
   set tl = GetZTargetLocation(target)
