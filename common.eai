@@ -7486,6 +7486,33 @@ function IsRacialHallId takes integer id, integer min_tier returns boolean
 endfunction
 
 //============================================================================
+function GetRacialHallTierId takes integer id returns integer
+  local integer i = 1
+  loop
+    exitwhen i > tiernum
+    if id == racial_hall[i] then
+      return i
+    endif
+    set i = i + 1
+  endloop
+  return 0
+endfunction
+
+function RichEconomyFastTechActive takes nothing returns boolean
+  return tier < tiernum and GetGold() > 1400 and GetWood() > 500
+endfunction
+
+function GetRichEconomyFastTechPriority takes integer hallid returns integer
+  local integer hall_tier = GetRacialHallTierId(hallid)
+  if hall_tier >= 3 then
+    return 90
+  elseif hall_tier == 2 then
+    return 85
+  endif
+  return 80
+endfunction
+
+//============================================================================
 function ChooseExpansion takes nothing returns nothing
   local integer i = 0
   local integer exp_chosen = 0
@@ -12614,9 +12641,12 @@ function OneBuildLoopAM takes nothing returns nothing
     local integer tracedsome = 0
     local integer tracednoresources = 0
     local integer tracedall = 0
+    local integer effective_prio = 0
     local string logtype = ""
     local boolean blocktierup = false
     local boolean expablocktier = false
+    local boolean next_tier_hall = false
+    local boolean rich_fasttech = false
 
     call InitLastUpkeep()
 
@@ -12635,6 +12665,10 @@ function OneBuildLoopAM takes nothing returns nothing
     if not campaign_ai then
       call ExpansionBuilder()
       call HeroReviver()
+    endif
+    set rich_fasttech = RichEconomyFastTechActive()
+    if rich_fasttech and not isTieringUp() then
+      call BuildUnit(1, racial_hall[tier + 1], GetRichEconomyFastTechPriority(racial_hall[tier + 1]))
     endif
     set total_gold   = GetGold() - gold_buffer
     set total_wood   = GetWood() - wood_buffer
@@ -12658,6 +12692,11 @@ function OneBuildLoopAM takes nothing returns nothing
         set qty = BlockListCheck(qty, id)
         set tp = build_type[index]
         set town = Max(build_town[index],0)
+        set next_tier_hall = tp == BUILD_UNIT and IsRacialHallId(id, tier + 1)
+        set effective_prio = build_prio[index]
+        if next_tier_hall and rich_fasttech then
+          set effective_prio = Max(effective_prio, GetRichEconomyFastTechPriority(id))
+        endif
         set mo = max_order[id + town*OBJECT_NUM]
 //        call DumpInteger("ID"+Int2Str(index),id)
 //        call DumpInteger("Qty"+Int2Str(index),qty)
@@ -12665,15 +12704,15 @@ function OneBuildLoopAM takes nothing returns nothing
 //        call DumpInteger("Prio"+Int2Str(index),build_prio[index])
 
         if qty > mo and qty > 0 then
-          if tp == BUILD_UNIT and IsRacialHallId(id, tier + 1) and ((blocktierup and bl_tier_lockactive[tier - 1]) or expablocktier) and GetUnitGoldCost2(id) * 2 > total_gold and GetUnitWoodCost2(id) * 2 > total_wood then
+          if next_tier_hall and not rich_fasttech and ((blocktierup and bl_tier_lockactive[tier - 1]) or expablocktier) and GetUnitGoldCost2(id) * 2 > total_gold and GetUnitWoodCost2(id) * 2 > total_wood then
               call Trace("TIER UP block " + logtype + unitNames[id] + " " + Int2Str(id))
               set ret = CANNOT_BUILD // Not ready to tier up
           elseif tp == BUILD_UNIT then
-              if IsRacialHallId(id, tier + 1) then
+              if next_tier_hall then
                 set bl_tier_lockactive[tier - 1] = false // lock only occurs once per tier, once lock is unlocked for that tier it stays unlocked e.g it doesn't have to start from scratch again if strategy changes or units die within tier 1
               endif  
               set logtype = "unit "
-              set ret = StartUnitAM(qty,id,build_town[index], build_loc[index], build_prio[index], mo)
+              set ret = StartUnitAM(qty,id,build_town[index], build_loc[index], effective_prio, mo)
           elseif tp == BUILD_UPGRADE then
               set logtype = "upgrade "
               set ret = StartUpgradeAM(qty,id)
@@ -12699,7 +12738,7 @@ function OneBuildLoopAM takes nothing returns nothing
               //call Trace("CANNOT BUILD " + logtype + unitNames[id] + " " + Int2Str(id))
               set traced = id
             endif
-            call AddRefresh(tp, qty, id, build_town[index], build_loc[index], build_prio[index])
+            call AddRefresh(tp, qty, id, build_town[index], build_loc[index], effective_prio)
           elseif ret == BUILT_SOME and tracedsome == 0 then
             //call Trace("BUILT SOME " + logtype + unitNames[id] + " " + Int2Str(id))
             set tracedsome = id
@@ -12721,7 +12760,7 @@ function OneBuildLoopAM takes nothing returns nothing
             set build_item[index_free] = build_item[index]
             set build_loc[index_free] = build_loc[index]
             set build_town[index_free] = build_town[index]
-            set build_prio[index_free] = build_prio[index] + prio_t_inc
+            set build_prio[index_free] = effective_prio + prio_t_inc
             set index_free = index_free + 1
           endif
         endif
