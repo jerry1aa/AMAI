@@ -475,6 +475,15 @@ globals
     string message_add = ""
     
     real command_wait = 3
+    real attack_regroup_delay = 1.5
+    real creep_regroup_delay = 1.0
+    real attack_target_poll_base = 0.5
+    real attack_target_poll_spread = 1.0
+    real point_goal_poll_base = 0.8
+    real point_goal_poll_spread = 0.8
+    integer post_combat_loot_cycles = 2
+    real post_attack_handoff_delay = 0.5
+    real post_expansion_creep_delay = 2.0
     
     real time_of_day = 0
     
@@ -12991,6 +13000,20 @@ function FromGroupAndGhoulsAM takes integer seconds returns nothing
   call FormGroupAM(seconds)
 endfunction
 
+function FastFormGroupAM takes real seconds returns nothing
+  call FormGroupAM(0)
+  if seconds > 0 then
+    call Sleep(seconds)
+  endif
+endfunction
+
+function FastFromGroupAndGhoulsAM takes real seconds returns nothing
+  if race_has_ghouls and race_ghouls_attack then
+    call FormGroupAM(0)
+  endif
+  call FastFormGroupAM(seconds)
+endfunction
+
 //============================================================================
 function EnableRetreatControl takes nothing returns nothing
   set break_attack = false
@@ -13081,8 +13104,8 @@ function SleepInCombatAM takes boolean ally_override returns nothing
           call GroupRemoveUnit(g, u)
         endloop
         call GroupClear(g)
-        if u == null and noenemycount < 4 then
-            set noenemycount = noenemycount + 1 // 8 seconds to pick up items on ground
+        if u == null and noenemycount < post_combat_loot_cycles then
+            set noenemycount = noenemycount + 1 // brief loot pickup window before chaining to the next action
             call TeleportCaptain(lastcaptainx, lastcaptainy)
         elseif u == null then
           exitwhen true // no enemies so exit
@@ -13306,7 +13329,7 @@ function CommonSleepUntilTargetDeadAM takes unit target, boolean iscreeping, boo
       set ally_target = null
     endif
 
-    call StaggerSleep(1 * sleep_multiplier, (1 * sleep_multiplier) + 2)
+    call StaggerSleep(attack_target_poll_base * sleep_multiplier, attack_target_poll_spread * sleep_multiplier)
 
     if desperation_assault and attack_length_counter > attack_reform_length * 10 then
       call DesperationAssault()
@@ -13360,7 +13383,7 @@ function SleepUntilAtGoalAM takes nothing returns nothing
     endif
     exitwhen CaptainIsEmpty()       // all units died
     //call Trace("Sleeping until target reached")
-    call StaggerSleep(2 * sleep_multiplier, 3 * sleep_multiplier)
+    call StaggerSleep(point_goal_poll_base * sleep_multiplier, point_goal_poll_spread * sleep_multiplier)
   endloop
   call Trace("SleepUntilGoal exit")
 endfunction
@@ -13485,7 +13508,7 @@ function AttackMoveKillAAM takes unit target, boolean ally_override returns noth
   call SleepInCombatAM(ally_override)
   call Trace("===Attack Fully Finished===")
   set attack_running = false
-  call Sleep(2.5)
+  call Sleep(post_attack_handoff_delay)
 endfunction
 
 //============================================================================
@@ -13497,7 +13520,7 @@ function AttackMoveKillCreep takes unit target, boolean ally_override returns no
     call Sleep(3 * sleep_multiplier)
     return
   endif
-  call FromGroupAndGhoulsAM(3)
+  call FastFromGroupAndGhoulsAM(creep_regroup_delay)
   set attack_running = true
   call EnableRetreatControl()
   call AttackMoveKill(target)
@@ -14345,7 +14368,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
         if common != null then
           call Trace("===Desperation Attack Alliance Target===")
           //call Chat(C_Ally)
-          call FromGroupAndGhoulsAM(3)
+          call FastFromGroupAndGhoulsAM(attack_regroup_delay)
           call DesperationAssault()
           call AttackMoveKillAAM(common, true)
           call ClearAllianceTarget(common)
@@ -14359,7 +14382,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
     if (common != null) then
       call Trace("===Desperation Attack Random Enemy Target===")
       call SetAllianceTargetIfLeadAndChat(common, C_Ally)
-      call FromGroupAndGhoulsAM(3)
+      call FastFromGroupAndGhoulsAM(attack_regroup_delay)
       call DesperationAssault()
       call AttackMoveKillAAM(common, true)
       call ClearAllianceTarget(common)
@@ -14397,7 +14420,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
 
     if queue_attack_p then
       call Trace("Attacking point "+Int2Str(queue_t_x)+","+Int2Str(queue_t_y) )
-      call FromGroupAndGhoulsAM(3)
+      call FastFromGroupAndGhoulsAM(attack_regroup_delay)
       call QueueAttackMoveXY(queue_t_x, queue_t_y)
       if not queue_running then
         call ClearCommandedAttackFlags()
@@ -14415,7 +14438,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
         call QueueGetNextCommand()
       else
         call Trace("Attacking unit" )
-        call FromGroupAndGhoulsAM(3)
+        call FastFromGroupAndGhoulsAM(attack_regroup_delay)
         call AttackMoveKillAAM(queue_t_u, false)
         call Trace("Attack complete" )
         return
@@ -14433,7 +14456,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
       call ClearCommandedAttackFlags()
       return
     endif
-    call FromGroupAndGhoulsAM(3)
+    call FastFromGroupAndGhoulsAM(attack_regroup_delay)
     call AttackMoveKillAAM(hall, false)
     call Trace("Attack complete" )
     set hall = null
@@ -14442,7 +14465,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
 
   if attack_point then
     call Trace("Attacking point "+Int2Str(attack_target_x)+","+Int2Str(attack_target_y) )
-    call FromGroupAndGhoulsAM(3)
+    call FastFromGroupAndGhoulsAM(attack_regroup_delay)
     call AttackMoveKillXYAAM(attack_target_x, attack_target_y)
     call Trace("Attack complete" )
     return
@@ -14459,7 +14482,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
       call ClearCommandedAttackFlags()
     else
       call Trace("Attacking unit" )
-      call FromGroupAndGhoulsAM(3)
+      call FastFromGroupAndGhoulsAM(attack_regroup_delay)
       call AttackMoveKillAAM(target_unit, false)
       call Trace("Attack complete" )
       return
@@ -14528,7 +14551,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
     if double_expansion_target != null and IsTargetGood(double_expansion_target, 10) then
       call Trace("Double Expansion Attack")
       call SetAllianceTargetIfLeadAndChat(double_expansion_target, C_Ally)
-      call FromGroupAndGhoulsAM(3)
+      call FastFromGroupAndGhoulsAM(attack_regroup_delay)
       call AttackMoveKillAAM(double_expansion_target, false)
       call ClearAllianceTarget(double_expansion_target)
       if not UnitAlive(double_expansion_target) then
@@ -14556,7 +14579,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
             if creep == null or not UnitAlive(creep) then
               set take_exp = false
             endif
-            call Sleep(10)
+            call Sleep(post_expansion_creep_delay)
             set attacking_expansion = false
             set creep = null
             return
@@ -14575,7 +14598,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
         if common != null then
           call Trace("Attack Alliance Target")
           //call Chat(C_Ally)
-          call FromGroupAndGhoulsAM(3)
+          call FastFromGroupAndGhoulsAM(attack_regroup_delay)
           call AttackMoveKillAAM(common, true)
           call Trace("Attack complete")
           call ClearAllianceTarget(common)
@@ -14596,7 +14619,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
           call SetAllianceTargetIfLeadAndChat(mega, C_Megatarget)
           //call SetChatVarsAttack(mega)
           call Chat(C_Mega) // This chat is to enemies not allies
-          call FromGroupAndGhoulsAM(3)
+          call FastFromGroupAndGhoulsAM(attack_regroup_delay)
           call AttackMoveKillAAM(mega, true)
           call ClearAllianceTarget(mega)
           set mega = null
@@ -14609,7 +14632,7 @@ function SingleMeleeAttackAM takes boolean needs_exp, boolean has_siege, integer
         set hall = ChooseAttackTarget(hall)
         if hall != null and UnitAlive(hall) then
           call SetAllianceTargetIfLeadAndChat(alli_target, C_Attack)
-          call FromGroupAndGhoulsAM(3)
+          call FastFromGroupAndGhoulsAM(attack_regroup_delay)
           call AttackMoveKillAAM(hall, true)
           set hall = null
           return
