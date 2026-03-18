@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - Commander: force attack commands that can override retreat behavior during player-commanded attacks.
 - Commander: `SHOW COMMAND` command to report current AI command state (attack target/mode, queue state, and active attack restrictions).
+- Commander: `ATTACK HERO <enemy>` and `FORCE ATTACK HERO <enemy>` commands to target the first living hero of the specified enemy player.
 - Documented persistent agent preferences in AGENTS.md.
 
 ### Changed
@@ -24,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixed
 - Ensure all peons for pre-existing expansions are trained before expanding again.
 - Fix AI command reports for player targets so they use stable player color/slot labels instead of unreliable runtime player-name strings.
+- Fix AI command reports for unit targets so they use stable unit type + owner labels instead of unreliable runtime unit-name strings.
 - Fix Zeppelin transport control conflicts: follow/rescue/build transport logic now respects player-selection locks on both the Zeppelin and its passenger.
 - Fix build failure caused by a function parameter named `force` conflicting with the JASS `force` type.
 - Fix Commander force-attack commands: IDs 40/41/42 are now dispatched correctly, and chat syntax for force attacking a specific player now reads the target player argument correctly.

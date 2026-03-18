@@ -864,6 +864,7 @@ globals
 #ENDINCLUDE
 
     string chat_no_unit_selected = ""
+    string chat_no_enemy_hero_target = ""
     string chat_confirm_attack_unit = ""
     string chat_towerrush = ""
     string chat_no_orc = ""
@@ -3419,6 +3420,31 @@ function GetPlayerReportLabel takes player p returns string
   return ColorText(GetPlayerColor(p)) + " P" + Int2Str(GetPlayerId(p) + 1)
 endfunction
 
+//============================================================================
+function GetUnitReportLabel takes unit u returns string
+  local string label = ""
+  local integer unit_id = 0
+  local player p = null
+
+  if u == null then
+    return "unknown"
+  endif
+
+  set unit_id = GetUnitTypeId(u)
+  set label = GetObjectName(unit_id)
+  if label == null or label == "" then
+    set label = "unit " + Int2Str(unit_id)
+  endif
+
+  set p = GetOwningPlayer(u)
+  if p != null and GetPlayerSlotState(p) == PLAYER_SLOT_STATE_PLAYING then
+    set label = label + ", " + GetPlayerReportLabel(p)
+  endif
+
+  set p = null
+  return label
+endfunction
+
 function GetCurrentDynamicReport takes nothing returns string
   if strengthtext[chosen_counter] != null and no_counter == false then 
     return " " + chat_dynamic_counter + " " + ApplyTrans(strengthtext[chosen_counter])
@@ -3440,7 +3466,7 @@ function GetCurrentCommandReport takes nothing returns string
       if queue_t_u == null then
         set command_status = "Queue attack unit (none)"
       elseif UnitAlive(queue_t_u) then
-        set command_status = "Queue attack unit (" + GetUnitName(queue_t_u) + ")"
+        set command_status = "Queue attack unit (" + GetUnitReportLabel(queue_t_u) + ")"
       else
         set command_status = "Queue attack unit (dead)"
       endif
@@ -3461,7 +3487,7 @@ function GetCurrentCommandReport takes nothing returns string
     if u == null then
       set command_status = "Attack unit (none)"
     elseif UnitAlive(u) then
-      set command_status = "Attack unit (" + GetUnitName(u) + ")"
+      set command_status = "Attack unit (" + GetUnitReportLabel(u) + ")"
     else
       set command_status = "Attack unit (dead)"
     endif
@@ -3545,7 +3571,7 @@ function GetCurrentAICommandReport takes nothing returns string
       if u == null then
         set attack_detail = " | target unit (none)"
       elseif UnitAlive(u) then
-        set attack_detail = " | target unit (" + GetUnitName(u) + ")"
+        set attack_detail = " | target unit (" + GetUnitReportLabel(u) + ")"
       else
         set attack_detail = " | target unit (dead)"
       endif
@@ -8730,6 +8756,57 @@ function QueueRemoveCommand takes nothing returns nothing
 endfunction
 
 //===========================================================================
+function GetFirstLivingHeroOfEnemyPlayer takes integer player_id returns unit
+  local group g = CreateGroup()
+  local player p = null
+  local unit u = null
+  if player_id < 0 or player_id >= GetBJMaxPlayers() then
+    call DestroyGroup(g)
+    set g = null
+    return null
+  endif
+  set p = Player(player_id)
+  if GetPlayerSlotState(p) != PLAYER_SLOT_STATE_PLAYING or not IsPlayerEnemy(ai_player, p) then
+    call DestroyGroup(g)
+    set g = null
+    set p = null
+    return null
+  endif
+  call GroupEnumUnitsOfPlayer(g, p, null)
+  loop
+    set u = FirstOfGroup(g)
+    exitwhen u == null
+    call GroupRemoveUnit(g, u)
+    if UnitAlive(u) and IsUnitType(u, UNIT_TYPE_HERO) and not IsUnitHidden(u) and not IsUnitIllusion(u) then
+      call DestroyGroup(g)
+      set g = null
+      set p = null
+      return u
+    endif
+  endloop
+  call DestroyGroup(g)
+  set g = null
+  set p = null
+  return null
+endfunction
+
+//===========================================================================
+function SetAttackEnemyHeroTarget takes integer player_id, boolean force_attack returns boolean
+  set target_unit = GetFirstLivingHeroOfEnemyPlayer(player_id)
+  if target_unit == null then
+    call DisplayToAllies(chat_no_enemy_hero_target)
+    return false
+  endif
+  set attack_point = false
+  set attack_player = false
+  set attack_unit = true
+  set break_attack = true
+  set go_home = false
+  call SetCommandedAttackFlags(force_attack)
+  return true
+endfunction
+
+//===========================================================================
 // (AMAI) Command recieving loop
 //===========================================================================
 function cmd_cancel takes integer cmd, integer data returns nothing
@@ -8834,6 +8911,9 @@ function cmd_attack takes integer cmd, integer data returns nothing
     call SetCommandedAttackFlags(false)
     call DisplayToAllies(chat_confirm_attack_unit)
 
+  elseif cmd == 18 then	// Attack enemy player's first living hero
+    call SetAttackEnemyHeroTarget(data, false)
+
   elseif cmd == 40 then	// Force attack specific player
     set break_attack = true
     set go_home = false
@@ -8875,6 +8955,9 @@ function cmd_attack takes integer cmd, integer data returns nothing
     set go_home = false
     call SetCommandedAttackFlags(true)
     call DisplayToAllies(chat_confirm_attack_unit)
+
+  elseif cmd == 19 then	// Force attack enemy player's first living hero
+    call SetAttackEnemyHeroTarget(data, true)
 
   elseif cmd == 17 then // Towerrush
     if race_towerrush_available then

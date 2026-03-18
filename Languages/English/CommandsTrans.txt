@@ -1,2 +1,4 @@
 To be translated	Translation
 Showing current command state.	Showing current command state.
+I will Attack/Guard the first living hero of the specified enemy player.	I will Attack/Guard the first living hero of the specified enemy player.
+I will Force Attack/Guard the first living hero of the specified enemy player.	I will Force Attack/Guard the first living hero of the specified enemy player.

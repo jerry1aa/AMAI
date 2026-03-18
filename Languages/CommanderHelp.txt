@@ -25,8 +25,12 @@ Here are some more Commands for Ally use
 --This will cause the ally to make sure that they have that many of the certain unit type.
 -cmd: (Ally) attack <Here, Select, or (Enemy)>                                 
 --Will cause that ally either to attack/guard the center of your current screen position or Selected Computer.
+-cmd: (Ally) attack hero (Enemy)
+--Will cause that ally to attack/guard the first living hero of the specified enemy player.
 -cmd: (Ally) force attack <Here, Select, or (Enemy)>
 --Will cause that ally to force attack/guard the target without retreating to town.
+-cmd: (Ally) force attack hero (Enemy)
+--Will cause that ally to force attack/guard the first living hero of the specified enemy player without retreating.
 -cmd: (Ally) show command
 --Displays the ally AI's current command status (attack/queue/restrictions).
 PAUSE
