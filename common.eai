@@ -486,6 +486,11 @@ globals
     real post_expansion_creep_delay = 2.0
     real reinforcement_join_radius = 900
     real reinforcement_move_radius = 5000
+    real anti_focus_hero_hp_loss = 0.14
+    real anti_focus_unit_hp_loss = 0.18
+    real anti_focus_density_ratio = 1.15
+    real anti_focus_retreat_distance = 425
+    real anti_focus_cooldown = 2.0
     
     real time_of_day = 0
     
@@ -661,6 +666,7 @@ globals
 
     unit follow_zeppelin = null
     boolean zeppelin_following = false
+    group anti_focus_group = CreateGroup()
 
     boolean array neutral_available
     unit array nearest_neutral
@@ -924,7 +930,10 @@ globals
   constant integer CHAT_LOCK = 2
   constant integer ALLIANCE_TARGET = 3
   constant integer PLAYER_CONTROL_LOCK = 4
+  constant integer ANTI_FOCUS_LOCK = 5
   constant integer PLAYER_CONTROL_LOCK_DURATION = 50 // 5 seconds (deciseconds)
+  hashtable unit_micro_cache = InitHashtable()
+  constant integer UNIT_MICRO_LAST_HP = 1
 
 	//gamecache settings = InitGameCache("AMAI_Set.w3v")
 
@@ -8313,6 +8322,171 @@ function CanBuildUnit takes integer unitid returns boolean
     set b = b and (unitid != u%1 or GetUpgradeLevel(old_id[u%4]) >= %3)
   #ENDINCLUDE
   return b
+endfunction
+
+function IsMeaningfulLoc takes location l returns boolean
+  if l == null then
+    return false
+  endif
+  return GetLocationX(l) != 0 or GetLocationY(l) != 0
+endfunction
+
+function GetAntiFocusTimeTick takes nothing returns integer
+  return GetControlLockTimeTick()
+endfunction
+
+function MarkUnitAntiFocusLocked takes unit u returns nothing
+  local integer now = 0
+  local integer lock_until = 0
+  if u == null then
+    return
+  endif
+  set now = GetAntiFocusTimeTick()
+  set lock_until = now + R2I((anti_focus_cooldown * 10) + 0.5)
+  call GroupAddUnit(anti_focus_group, u)
+  call GroupRemoveUnit(focus_fire_group, u)
+  call GroupRemoveUnit(windwalk_group, u)
+  call GroupRemoveUnit(micro_ranged_group, u)
+  call StoreInteger(amaiCache, Int2Str(ANTI_FOCUS_LOCK), Int2Str(GetHandleId(u)), lock_until)
+endfunction
+
+function IsUnitAntiFocusLocked takes unit u returns boolean
+  local integer now = 0
+  local integer lock_until = 0
+  if u == null then
+    return false
+  endif
+  if not HaveStoredInteger(amaiCache, Int2Str(ANTI_FOCUS_LOCK), Int2Str(GetHandleId(u))) then
+    call GroupRemoveUnit(anti_focus_group, u)
+    return false
+  endif
+  set now = GetAntiFocusTimeTick()
+  set lock_until = GetStoredInteger(amaiCache, Int2Str(ANTI_FOCUS_LOCK), Int2Str(GetHandleId(u)))
+  if now <= lock_until then
+    call GroupAddUnit(anti_focus_group, u)
+    return true
+  endif
+  call FlushStoredInteger(amaiCache, Int2Str(ANTI_FOCUS_LOCK), Int2Str(GetHandleId(u)))
+  call GroupRemoveUnit(anti_focus_group, u)
+  return false
+endfunction
+
+function GetUnitRecentHPLossRatio takes unit u returns real
+  local integer key = 0
+  local real max_hp = 0
+  local real current_hp_ratio = 0
+  local real previous_hp_ratio = 0
+  if u == null or not UnitAlive(u) then
+    return 0
+  endif
+  set max_hp = GetUnitState(u, UNIT_STATE_MAX_LIFE)
+  if max_hp <= 0 then
+    return 0
+  endif
+  set key = GetHandleId(u)
+  set current_hp_ratio = GetUnitState(u, UNIT_STATE_LIFE) / max_hp
+  set previous_hp_ratio = LoadReal(unit_micro_cache, key, UNIT_MICRO_LAST_HP)
+  if previous_hp_ratio <= 0 then
+    set previous_hp_ratio = current_hp_ratio
+  endif
+  call SaveReal(unit_micro_cache, key, UNIT_MICRO_LAST_HP, current_hp_ratio)
+  return RMax(previous_hp_ratio - current_hp_ratio, 0)
+endfunction
+
+function IsUnitAntiFocusEligible takes unit u returns boolean
+  if u == null or not UnitAlive(u) then
+    return false
+  endif
+  if IsUnitType(u, UNIT_TYPE_HERO) or IsUnitType(u, UNIT_TYPE_PEON) or IsUnitType(u, UNIT_TYPE_STRUCTURE) then
+    return false
+  endif
+  if not IsUnitAIControllable(u) then
+    return false
+  endif
+  if IsUnitType(u, UNIT_TYPE_RANGED_ATTACKER) then
+    return true
+  endif
+  if GetUnitState(u, UNIT_STATE_MAX_MANA) > 0 then
+    return true
+  endif
+  return false
+endfunction
+
+function GetAntiFocusAnchorLoc takes unit u returns location
+  if main_army >= 0 and army_loc[main_army] != null and IsMeaningfulLoc(army_loc[main_army]) then
+    return Location(GetLocationX(army_loc[main_army]), GetLocationY(army_loc[main_army]))
+  endif
+  if IsMeaningfulLoc(last_ally_loc) then
+    return Location(GetLocationX(last_ally_loc), GetLocationY(last_ally_loc))
+  endif
+  return Location(GetLocationX(home_location), GetLocationY(home_location))
+endfunction
+
+function GetAntiFocusRetreatLoc takes unit u, location danger_loc, location support_loc returns location
+  local location unitloc = null
+  local location targetloc = null
+  local location anchorloc = null
+  local location retreatvec = null
+  local real retreat_distance = anti_focus_retreat_distance
+  if u == null then
+    return null
+  endif
+  set unitloc = GetUnitLoc(u)
+  if IsMeaningfulLoc(support_loc) and DistanceBetweenPoints(unitloc, support_loc) > 125 then
+    set targetloc = AIGetProjectedLoc(unitloc, support_loc, retreat_distance, GetRandomReal(-0.25, 0.25))
+  else
+    set anchorloc = GetAntiFocusAnchorLoc(u)
+    if IsMeaningfulLoc(anchorloc) and DistanceBetweenPoints(unitloc, anchorloc) > 125 then
+      set targetloc = AIGetProjectedLoc(unitloc, anchorloc, retreat_distance, GetRandomReal(-0.20, 0.20))
+    elseif IsMeaningfulLoc(danger_loc) then
+      set retreatvec = GetSubtractionLoc(unitloc, danger_loc)
+      set targetloc = GetProjectedLoc_dd(unitloc, retreatvec, retreat_distance)
+    else
+      set targetloc = AIGetProjectedLoc(unitloc, home_location, retreat_distance, GetRandomReal(-0.20, 0.20))
+    endif
+  endif
+  if unitloc != null then
+    call RemoveLocation(unitloc)
+    set unitloc = null
+  endif
+  if anchorloc != null then
+    call RemoveLocation(anchorloc)
+    set anchorloc = null
+  endif
+  if retreatvec != null then
+    call RemoveLocation(retreatvec)
+    set retreatvec = null
+  endif
+  return targetloc
+endfunction
+
+function TriggerAntiFocusRetreat takes unit u, location danger_loc, location support_loc returns boolean
+  local location retreatloc = null
+  if u == null or not UnitAlive(u) or not IsUnitAIControllable(u) then
+    return false
+  endif
+  if IsUnitInGroup(u, unit_healing) or IsUnitInGroup(u, unit_rescueing) or IsUnitInGroup(u, unit_harassing) or IsUnitInGroup(u, unit_zepplin_move) then
+    return false
+  endif
+  if IsUnitAntiFocusLocked(u) then
+    return false
+  endif
+  set retreatloc = GetAntiFocusRetreatLoc(u, danger_loc, support_loc)
+  if retreatloc == null then
+    return false
+  endif
+  call RemoveGuardPosition(u)
+  call IssuePointOrderLoc(u, "move", retreatloc)
+  call TQAddUnitJob(anti_focus_cooldown + 0.4, RESET_GUARD_POSITION_ONLY, 80, u)
+  call MarkUnitAntiFocusLocked(u)
+  if IsUnitType(u, UNIT_TYPE_HERO) then
+    call CreateDebugTag("HERO: anti-focus", 10, u, 2.50, 1.20)
+  else
+    call CreateDebugTag("UNIT: anti-focus", 10, u, 2.50, 1.20)
+  endif
+  call RemoveLocation(retreatloc)
+  set retreatloc = null
+  return true
 endfunction
 
 //============================================================================

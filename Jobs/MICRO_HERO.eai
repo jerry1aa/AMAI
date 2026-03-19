@@ -341,10 +341,14 @@ function MicroHeroJob takes integer hn returns nothing
 
   //  call DisplayToAll(Int2Str(R2I(hero_enemy_density[hn] * 10)))
   //  call DisplayToAll(Int2Str(R2I(DistanceBetweenPoints(hero_enemy_loc[hn],GetUnitLoc(hero_unit[hn])))))
-
     set teleportdistance = DistanceBetweenPoints(hero_loc[hn], town_loc[most_threatened_town])
     if not teleporting and GetUnitState(hero_unit[hn], UNIT_STATE_LIFE) < RMax(flee_health_percentage * GetUnitState(hero_unit[hn], UNIT_STATE_MAX_LIFE), flee_minimum_health) and not IsUnitInGroup(hero_unit[hn], unit_healing) then
       call SaveHero(hn,armyOfHero)
+    elseif not teleporting and not IsUnitInGroup(hero_unit[hn], unit_healing) and hero_hp_loss[hn] >= anti_focus_hero_hp_loss and hero_enemy_density[hn] > 0.75 and hero_enemy_density[hn] > hero_ally_density[hn] * anti_focus_density_ratio then
+      if TriggerAntiFocusRetreat(hero_unit[hn], hero_enemy_loc[hn], hero_ally_loc[hn]) then
+        call TQAddJob(1 * sleep_multiplier, MICRO_HERO, hn)
+        return
+      endif
     endif
     if armyOfHero >= 0 and not teleporting and GetItemNumberOnUnit(tp_item, hero_unit[hn]) > 0 then
       if town_threatened and town_threat[most_threatened_town] >= teleport_min_threat and teleportdistance > LinearInterpolation(teleport_low_threat, teleport_high_threat, teleport_low_threat_distance, teleport_high_threat_distance, town_threat[most_threatened_town]) and town_can_tp[most_threatened_town] and army_strength[armyOfHero] >= teleport_army_min_strength then

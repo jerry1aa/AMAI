@@ -187,8 +187,10 @@ function MicroUnitsJob takes nothing returns nothing
   local real unit_life = 0
   local real unit_life_max = 0
   local real unit_mana = 0
+  local real recent_hp_loss = 0.0
   local boolean ward_check = false
   local boolean prev_ward = ward_cast
+  local boolean anti_focus_triggered = false
   //local boolean deny = (GetGold() > 600 and GetWood() > 400) or GetGoldOwned() > 3000
   //local location unitloc = null
   local real health_sum = 0.0
@@ -196,6 +198,8 @@ function MicroUnitsJob takes nothing returns nothing
   local real unit_health_ratio = 0.0
   local integer id = 0
   local integer hid = -1
+  local integer nearby_enemy_count = 0
+  local integer nearby_enemy_strength = 0
   local integer i = 0
   if major_hero == null or not UnitAlive(major_hero) then
     set major_hero = GetMajorHero(major_hero)
@@ -212,6 +216,7 @@ function MicroUnitsJob takes nothing returns nothing
     exitwhen u == null
     if UnitAlive(u) and not IsUnitType(u, UNIT_TYPE_PEON) and not IsUnitType(u, UNIT_TYPE_STRUCTURE) and IsStandardUnit(u) and not IsUnitBuying(u) then
       set id = GetUnitTypeId(u)
+      set anti_focus_triggered = false
       if id == 'ohwd' then
         set ward_check = true
       endif
@@ -220,19 +225,40 @@ function MicroUnitsJob takes nothing returns nothing
       elseif not IsUnitType(u, UNIT_TYPE_MECHANICAL) and (id == 'hphx' or not IsUnitType(u, UNIT_TYPE_SUMMONED)) and GetUnitState(u, UNIT_STATE_LIFE) < RMax(flee_health_percentage * GetUnitState(u, UNIT_STATE_MAX_LIFE), flee_minimum_health) then
         // leave in group to heal
       else
-        call GroupRemoveUnit(g, u)
-        #INCLUDETABLE <$VER$\StandardUnits.txt> #COND "%4" =~ /\bstatue\b/
-        if id == o%1 then
-          //call DisplayToAllJobDebug("MICRO_UNITS: Statue Control")
-          if attack_running and GetLocationX(last_enemy_loc) != 0 and GetLocationY(last_enemy_loc) != 0 then
-            call StatueControl(u)
-          endif
-          //call DisplayToAllJobDebug("MICRO_UNITS: Statue Control end")
+        set recent_hp_loss = 0
+        set unit_life_max = GetUnitState(u, UNIT_STATE_MAX_LIFE)
+        if unit_life_max > 0 and IsUnitAntiFocusEligible(u) then
+          set recent_hp_loss = GetUnitRecentHPLossRatio(u)
         endif
-        #ENDINCLUDE
-        set hid = GetHealerId(id)
-        if hid != -1 and GetUnitState(u, UNIT_STATE_MANA) >= (healer_mana_cost[hid] * 2) / 3 and ((healer_upg_id[hid] == 0) or (GetUpgradeLevel(healer_upg_id[hid]) >= healer_upg_level[hid])) then
-          call GroupAddUnit(healer_group, u)
+        if attack_running or town_threatened then
+          set nearby_enemy_count = 0
+          set nearby_enemy_strength = 0
+          if unit_life_max > 0 and IsUnitAntiFocusEligible(u) then
+            set unit_health_ratio = GetUnitState(u, UNIT_STATE_LIFE) / unit_life_max
+            set nearby_enemy_count = GetLocationEnemyStrength(GetUnitX(u), GetUnitY(u), 550, false)
+            set nearby_enemy_strength = GetLocationNonCreepStrength(GetUnitX(u), GetUnitY(u), 550)
+            if recent_hp_loss >= anti_focus_unit_hp_loss and unit_health_ratio < 0.85 and nearby_enemy_count >= 2 and I2R(nearby_enemy_strength) > GetUnitStrength(u) * anti_focus_density_ratio then
+              set anti_focus_triggered = TriggerAntiFocusRetreat(u, last_enemy_loc, last_ally_loc)
+            endif
+          endif
+        endif
+        if anti_focus_triggered then
+          call GroupRemoveUnit(g, u)
+        else
+          call GroupRemoveUnit(g, u)
+          #INCLUDETABLE <$VER$\StandardUnits.txt> #COND "%4" =~ /\bstatue\b/
+          if id == o%1 then
+            //call DisplayToAllJobDebug("MICRO_UNITS: Statue Control")
+            if attack_running and GetLocationX(last_enemy_loc) != 0 and GetLocationY(last_enemy_loc) != 0 then
+              call StatueControl(u)
+            endif
+            //call DisplayToAllJobDebug("MICRO_UNITS: Statue Control end")
+          endif
+          #ENDINCLUDE
+          set hid = GetHealerId(id)
+          if hid != -1 and GetUnitState(u, UNIT_STATE_MANA) >= (healer_mana_cost[hid] * 2) / 3 and ((healer_upg_id[hid] == 0) or (GetUpgradeLevel(healer_upg_id[hid]) >= healer_upg_level[hid])) then
+            call GroupAddUnit(healer_group, u)
+          endif
         endif
       endif
     else

@@ -282,6 +282,22 @@ function FilterHeroesBreakingChaseFromFocusGroup takes group g, unit target retu
   set ug = null
 endfunction
 
+function FilterAntiFocusUnitsFromFocusGroup takes group g returns nothing
+  local unit u = null
+  local group ug = CopyGroup(g)
+  loop
+    set u = FirstOfGroup(ug)
+    exitwhen u == null
+    if IsUnitAntiFocusLocked(u) then
+      call CreateDebugTag("FF: anti-focus hold", 10, u, 1.00, 0.80)
+      call GroupRemoveUnit(g, u)
+    endif
+    call GroupRemoveUnit(ug, u)
+  endloop
+  call DestroyGroup(ug)
+  set ug = null
+endfunction
+
 function FocusFire takes unit u returns nothing
   local group t = CreateGroup()
   local group temp_focus = CreateGroup()
@@ -311,6 +327,7 @@ function FocusFire takes unit u returns nothing
   set temp_focus = SelectUnittype(temp_focus, UNIT_TYPE_PEON, false)
   set temp_focus = SelectByAlive(temp_focus, true)
   set temp_focus = SelectByUnitStandard(temp_focus, true)
+  call FilterAntiFocusUnitsFromFocusGroup(temp_focus)
   //set temp_focus = SelectByOrderOr2(focus_fire_group,OrderId("move"),OrderId("attack"),OrderId("stop"), true)
   set temp_focus = SelectByOrder(temp_focus, OrderId("blizzard"), false)
   set temp_focus = SelectByOrder(temp_focus, OrderId("flamestrike"), false)

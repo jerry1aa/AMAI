@@ -31,8 +31,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - AI now notifies allies when its current AI command report changes, including attack, defend, retreat, idle/regrouping, and updated attack-target detail.
 - Shared attack and creep pacing is faster: regroup delays, point-goal polling, target-death polling, post-combat linger, and expansion-creep follow-up waits are all reduced so the AI chains actions more quickly without changing retreat logic.
 - Mid-attack regrouping now keeps far reinforcements separate from the active assault group: distant new units move toward the main army first and only join once they are near enough, reducing long stalls at enemy positions.
+- Heroes and fragile backline units now perform short anti-focus retreats when they take sudden burst damage under local pressure, temporarily dropping out of focus-fire orders before full flee logic is needed.
 
 ### Fixed
+- Anti-focus short-retreat no longer delays `SaveHero` for heroes already below the normal flee threshold, now keeps unit HP-loss caches fresh outside battle states, and no longer leaks temporary retreat locations.
 - Ensure all peons for pre-existing expansions are trained before expanding again.
 - Fix AI command reports for player targets so they use stable player color/slot labels instead of unreliable runtime player-name strings.
 - Fix AI command reports for unit targets so they use stable unit type + owner labels instead of unreliable runtime unit-name strings.
