@@ -6,10 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## Unreleased
 
 ### Added
+- Configurable AI gold and lumber income strength modifiers with neutral defaults, driven by a periodic runtime adjustment job.
 - Commander: force attack commands that can override retreat behavior during player-commanded attacks.
 - Commander: `SHOW COMMAND` command to report current AI command state (attack target/mode, queue state, and active attack restrictions).
 - Commander: `ATTACK HERO <enemy>` and `FORCE ATTACK HERO <enemy>` commands to target the first living hero of the specified enemy player.
 - Documented persistent agent preferences in AGENTS.md.
+- Documented the default repository agent workflow in `AGENTS.md`, with the main agent owning research/planning/review and optional subagent delegation for bounded coding/testing.
 
 ### Changed
 - All attack and defense upgrades are always requested per race: Human (melee, armor, ranged, leather), Orc (melee, armor, ranged), Undead (unholy str/armor, crypt attack/armor), Night Elf (moon str/armor, wild str/armor, bows); probabilistic BuildAdvUpgr2 replaced with unconditional BuildUpgr so the AI consistently researches them.
