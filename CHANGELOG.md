@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Added
 - Configurable AI gold and lumber income strength modifiers with neutral defaults, driven by a periodic runtime adjustment job.
+- Game-start AI economy preset dialog to choose one shared income modifier for all AMAI players before the match begins.
 - Commander: force attack commands that can override retreat behavior during player-commanded attacks.
 - Commander: `SHOW COMMAND` command to report current AI command state (attack target/mode, queue state, and active attack restrictions).
 - Commander: `ATTACK HERO <enemy>` and `FORCE ATTACK HERO <enemy>` commands to target the first living hero of the specified enemy player.

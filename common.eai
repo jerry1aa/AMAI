@@ -8380,11 +8380,11 @@ function GetUnitRecentHPLossRatio takes unit u returns real
   local real current_hp_ratio = 0
   local real previous_hp_ratio = 0
   if u == null or not UnitAlive(u) then
-    return 0
+    return 0.00
   endif
   set max_hp = GetUnitState(u, UNIT_STATE_MAX_LIFE)
   if max_hp <= 0 then
-    return 0
+    return 0.00
   endif
   set key = GetHandleId(u)
   set current_hp_ratio = GetUnitState(u, UNIT_STATE_LIFE) / max_hp
@@ -8393,7 +8393,7 @@ function GetUnitRecentHPLossRatio takes unit u returns real
     set previous_hp_ratio = current_hp_ratio
   endif
   call SaveReal(unit_micro_cache, key, UNIT_MICRO_LAST_HP, current_hp_ratio)
-  return RMax(previous_hp_ratio - current_hp_ratio, 0)
+  return RMax(previous_hp_ratio - current_hp_ratio, 0.00)
 endfunction
 
 function IsUnitAntiFocusEligible takes unit u returns boolean
@@ -9307,6 +9307,12 @@ function cmd_misc takes integer cmd, integer data returns nothing
   #ENDINCLUDE
     endif
     call InitChatArrays()
+
+  elseif cmd == 72 then
+    set economy_gold_income_percent = data
+    set economy_lumber_income_percent = data
+    set economy_gold_income_remainder = 0
+    set economy_lumber_income_remainder = 0
 
   elseif cmd == 73 then
     set console_on = true

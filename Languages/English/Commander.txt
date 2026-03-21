@@ -21,6 +21,7 @@ dlghdr_choose_ally	Choose Ally
 dlghdr_choose_number	Choose Number
 dlghdr_choose_player	Choose Player
 dlghdr_game_type	Choose Game Type
+dlghdr_economy_type	Choose AI Economy Preset
 dlghdr_root	Choose Command
 dlghdr_tribute_type	Choose Tribute Type
 dlghdr_tribute_amount	Choose Tribute Amount
@@ -38,3 +39,9 @@ dlgbutton_commander_language	Commander Language
 dlgbutton_player_ally	Ally
 dglchoose_language	Choose Language
 dlgbutton_shared	Joint Control
+dlgbutton_economy_50	50%
+dlgbutton_economy_60	60%
+dlgbutton_economy_70	70%
+dlgbutton_economy_80	80%
+dlgbutton_economy_90	90%
+dlgbutton_economy_100	100%

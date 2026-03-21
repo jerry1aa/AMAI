@@ -96,10 +96,19 @@
 
     dialog game_start_dialog = null
     trigger game_start_trigger = null
+    dialog economy_start_dialog = null
+    trigger economy_start_trigger = null
     button commander_mode = null
     button no_human_mode = null
     button shared_mode = null
     button ai_only_mode = null
+    button economy_50_mode = null
+    button economy_60_mode = null
+    button economy_70_mode = null
+    button economy_80_mode = null
+    button economy_90_mode = null
+    button economy_100_mode = null
+    integer economy_start_percent = 100
 
     dialog language_dialog = null
     trigger language_trigger = null
@@ -129,6 +138,7 @@
     string dlghdr_choose_number = ""
     string dlghdr_choose_player = ""
     string dlghdr_game_type = ""
+    string dlghdr_economy_type = ""
     string dlghdr_root = ""
     string dlghdr_tribute_type = ""
     string dlghdr_tribute_amount = ""
@@ -145,6 +155,12 @@
     string dlgbutton_no_human = ""
     string dlgbutton_shared = ""
     string dlgbutton_ai_only = ""
+    string dlgbutton_economy_50 = ""
+    string dlgbutton_economy_60 = ""
+    string dlgbutton_economy_70 = ""
+    string dlgbutton_economy_80 = ""
+    string dlgbutton_economy_90 = ""
+    string dlgbutton_economy_100 = ""
     boolean debugging = false
     string dglchoose_language = "Choose Language"
 
@@ -1860,6 +1876,7 @@ function MapInitTimer takes nothing returns nothing
 endfunction
 
 function GameStartDefault takes nothing returns nothing
+  call SendToAllAIs(72, economy_start_percent)
   if game_mode != "ai_only" then
     call SendToAllAIs(73,0)
     call InitCommanderPart()
@@ -1877,8 +1894,51 @@ function GameStartDefault takes nothing returns nothing
   call MapInitTimer()
 endfunction
 
+function GameStartEconomyDlgResponse takes nothing returns nothing
+  local button cb = GetClickedButton()
+  if cb == economy_50_mode then
+    set economy_start_percent = 50
+  elseif cb == economy_60_mode then
+    set economy_start_percent = 60
+  elseif cb == economy_70_mode then
+    set economy_start_percent = 70
+  elseif cb == economy_80_mode then
+    set economy_start_percent = 80
+  elseif cb == economy_90_mode then
+    set economy_start_percent = 90
+  elseif cb == economy_100_mode then
+    set economy_start_percent = 100
+  endif
+  call GameStartDefault()
+  call DialogDestroy(economy_start_dialog)
+  call DestroyTrigger(economy_start_trigger)
+  set economy_start_dialog = null
+  set economy_start_trigger = null
+  set cb = null
+endfunction
+
+function BuildEconomyStartDialog takes player current_player returns nothing
+  local dialog d = DialogCreate()
+  local trigger t = CreateTrigger()
+  call DialogDestroy(economy_start_dialog)
+  set economy_start_percent = 100
+  set economy_start_dialog = d
+  set economy_start_trigger = t
+  call DialogSetMessage(d, dlghdr_economy_type)
+  set economy_50_mode = DialogAddButton(d, dlgbutton_economy_50, 49)
+  set economy_60_mode = DialogAddButton(d, dlgbutton_economy_60, 50)
+  set economy_70_mode = DialogAddButton(d, dlgbutton_economy_70, 51)
+  set economy_80_mode = DialogAddButton(d, dlgbutton_economy_80, 52)
+  set economy_90_mode = DialogAddButton(d, dlgbutton_economy_90, 53)
+  set economy_100_mode = DialogAddButton(d, dlgbutton_economy_100, 54)
+  call TriggerRegisterDialogEvent(t, d)
+  call TriggerAddAction(t, function GameStartEconomyDlgResponse)
+  call DialogDisplay(current_player, d, true)
+endfunction
+
 function GameStartDlgResponse takes nothing returns nothing
   local button cb = GetClickedButton()
+  local player host = GetTriggerPlayer()
   if cb == commander_mode then
     set game_mode = "commander"
   elseif cb == no_human_mode then
@@ -1888,10 +1948,13 @@ function GameStartDlgResponse takes nothing returns nothing
   elseif cb == shared_mode then
     set game_mode = "shared"
   endif
-  call GameStartDefault()
   call DialogDestroy(game_start_dialog)
   call DestroyTrigger(game_start_trigger)
+  set game_start_dialog = null
+  set game_start_trigger = null
+  call BuildEconomyStartDialog(host)
   set cb = null
+  set host = null
 endfunction
 
 function GameStartDlg takes nothing returns nothing
