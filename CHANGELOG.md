@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Documented the default repository agent workflow in `AGENTS.md`, with the main agent owning research/planning/review and optional subagent delegation for bounded coding/testing.
 
 ### Changed
+- Anti-focus retreat now also covers melee combat units, using stricter burst-damage, HP, and local-pressure thresholds than ranged/caster anti-focus so frontline units only peel off under clearly dangerous focus.
 - All attack and defense upgrades are always requested per race: Human (melee, armor, ranged, leather), Orc (melee, armor, ranged), Undead (unholy str/armor, crypt attack/armor), Night Elf (moon str/armor, wild str/armor, bows); probabilistic BuildAdvUpgr2 replaced with unconditional BuildUpgr so the AI consistently researches them.
 - Upgrades are no longer globally blocked while `town_threatened`; AI can continue researching during defense.
 - Orc weapon and armor upgrades now get a rich-economy priority boost across TFT, ROC, and REFORGED when gold and lumber are high.

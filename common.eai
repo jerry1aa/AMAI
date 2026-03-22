@@ -492,6 +492,9 @@ globals
     real anti_focus_hero_hp_loss = 0.14
     real anti_focus_unit_hp_loss = 0.18
     real anti_focus_density_ratio = 1.15
+    real anti_focus_melee_hp_loss = 0.24
+    real anti_focus_melee_hp_ratio = 0.72
+    real anti_focus_melee_density_ratio = 1.35
     real anti_focus_retreat_distance = 425
     real anti_focus_cooldown = 2.0
     
@@ -8405,6 +8408,9 @@ function IsUnitAntiFocusEligible takes unit u returns boolean
   endif
   if not IsUnitAIControllable(u) then
     return false
+  endif
+  if IsUnitType(u, UNIT_TYPE_MELEE_ATTACKER) then
+    return true
   endif
   if IsUnitType(u, UNIT_TYPE_RANGED_ATTACKER) then
     return true

@@ -201,6 +201,10 @@ function MicroUnitsJob takes nothing returns nothing
   local integer nearby_enemy_count = 0
   local integer nearby_enemy_strength = 0
   local integer i = 0
+  local boolean anti_focus_melee = false
+  local real anti_focus_hp_loss_threshold = 0.0
+  local real anti_focus_hp_ratio_threshold = 0.0
+  local real anti_focus_pressure_ratio = 0.0
   if major_hero == null or not UnitAlive(major_hero) then
     set major_hero = GetMajorHero(major_hero)
   endif
@@ -234,10 +238,20 @@ function MicroUnitsJob takes nothing returns nothing
           set nearby_enemy_count = 0
           set nearby_enemy_strength = 0
           if unit_life_max > 0 and IsUnitAntiFocusEligible(u) then
+            set anti_focus_melee = IsUnitType(u, UNIT_TYPE_MELEE_ATTACKER)
+            if anti_focus_melee then
+              set anti_focus_hp_loss_threshold = anti_focus_melee_hp_loss
+              set anti_focus_hp_ratio_threshold = anti_focus_melee_hp_ratio
+              set anti_focus_pressure_ratio = anti_focus_melee_density_ratio
+            else
+              set anti_focus_hp_loss_threshold = anti_focus_unit_hp_loss
+              set anti_focus_hp_ratio_threshold = 0.85
+              set anti_focus_pressure_ratio = anti_focus_density_ratio
+            endif
             set unit_health_ratio = GetUnitState(u, UNIT_STATE_LIFE) / unit_life_max
             set nearby_enemy_count = GetLocationEnemyStrength(GetUnitX(u), GetUnitY(u), 550, false)
             set nearby_enemy_strength = GetLocationNonCreepStrength(GetUnitX(u), GetUnitY(u), 550)
-            if recent_hp_loss >= anti_focus_unit_hp_loss and unit_health_ratio < 0.85 and nearby_enemy_count >= 2 and I2R(nearby_enemy_strength) > GetUnitStrength(u) * anti_focus_density_ratio then
+            if recent_hp_loss >= anti_focus_hp_loss_threshold and unit_health_ratio < anti_focus_hp_ratio_threshold and nearby_enemy_count >= 2 and I2R(nearby_enemy_strength) > GetUnitStrength(u) * anti_focus_pressure_ratio then
               set anti_focus_triggered = TriggerAntiFocusRetreat(u, last_enemy_loc, last_ally_loc)
             endif
           endif
