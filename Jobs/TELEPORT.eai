@@ -1,16 +1,30 @@
 #IFDEF GLOBAL
     boolean teleporting = false
     location teleportloc = Location(0,0)
+    boolean teleport_retreat_pending = false
+    boolean teleport_retreat_applied = false
 #ELSE
 function TeleportJob takes unit hu returns nothing
-  local group g = null
-  local unit u = null
-  local integer current_order = GetUnitCurrentOrder(hu)
+    local group g = null
+    local unit u = null
+    local integer current_order = GetUnitCurrentOrder(hu)
 
   call DisplayToAllJobDebug("TELEPORT JOB Start")
   if hu == null or not UnitAlive(hu) or ((current_order < 852008 or current_order > 852013) and current_order != OrderId("massteleport")) then // No longer teleporting
     set teleporting = false
+    set teleport_retreat_pending = false
+    set teleport_retreat_applied = false
     return
+  endif
+  if teleport_retreat_pending and not teleport_retreat_applied and IsUnitInGroup(hu, army_group[main_army]) then
+    call CaptainGoHome()
+    if teleportloc != null then
+      call TeleportCaptain(GetLocationX(teleportloc), GetLocationY(teleportloc))
+    endif
+    set break_attack = attack_running
+    set isfleeing = true
+    set attack_running = false
+    set teleport_retreat_applied = true
   endif
   set g = CreateGroup()
   call GroupEnumUnitsInRange(g, GetUnitX(hu), GetUnitY(hu), 2 * teleport_radius, null)

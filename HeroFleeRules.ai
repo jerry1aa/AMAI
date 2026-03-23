@@ -15,6 +15,7 @@
   call ActionRule(DistanceBetweenPoints(home_location, l) < 2000 and (hero_enemy_density[hn] > 1), ACTION_TP, -100)
   call ActionRule(DistanceBetweenPoints(home_location, l) < 2000 and (hero_enemy_density[hn] < 1), ACTION_TP, -1000000)
   call ActionRule(town_threatened, ACTION_TP, -100000) // town threatened handled outside of these rules
+  call ActionRule(GetHeroLevel(hero_unit[hn]) < hero_self_tp_min_level, ACTION_TP, -1000000)
 
   if armyOfHero >= 0 then
     call ActionRule( army_strength[armyOfHero] < teleport_army_min_strength  ,ACTION_TP, -10)  

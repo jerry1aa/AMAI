@@ -103,6 +103,11 @@ function GoHomeIfMainHero takes unit u, real x, real y returns nothing
   endif
 endfunction
 
+function QueueTeleportRetreatIfMainHero takes unit u returns nothing
+  set teleport_retreat_pending = IsUnitInGroup(u, army_group[main_army])
+  set teleport_retreat_applied = false
+endfunction
+
 function TeleportHome takes integer hn returns nothing
   local integer i = 0
   local real dx = GetLocationX(captain_home)
@@ -119,7 +124,8 @@ function TeleportHome takes integer hn returns nothing
       set dy = GetLocationY(home_location)
     endif
   endif  
-  call GoHomeIfMainHero(hero_unit[hn], dx, dy)
+  set teleport_retreat_pending = false
+  set teleport_retreat_applied = false
   call UnitUseItemPoint(hero_unit[hn], GetItemOfTypeOnUnit(tp_item, hero_unit[hn]), dx + GetRandomInt(300,500) * ISign(), dy + GetRandomInt(300,500) * ISign())
   set teleporting = true
   if teleportloc != null then
@@ -169,13 +175,14 @@ function GetTeleportLandPoint takes location l returns location
 endfunction
 
 function TeleportToLoc takes unit u, location l returns nothing
-  local location loc = GetTeleportLandPoint(l)
+  local location loc = null
   if teleporting then
     return
   endif
-  call GoHomeIfMainHero(u, GetLocationX(loc), GetLocationY(loc))
-  set teleporting = true
+  set loc = GetTeleportLandPoint(l)
+  call QueueTeleportRetreatIfMainHero(u)
   call UnitUseItemPoint(u, GetItemOfTypeOnUnit(tp_item, u), GetLocationX(loc), GetLocationY(loc))
+  set teleporting = true
   call TQAddUnitJob(0.5, TELEPORT, 0, u)
   call RemoveLocation(loc)
   set loc = null
@@ -327,11 +334,12 @@ function MicroHeroJob takes integer hn returns nothing
     if (not teleporting and (current_order >= 852008 and current_order <= 852013)) or current_order == OrderId("massteleport") then
       if (current_order != OrderId("massteleport") and GetItemTypeId(UnitItemInSlot(hero_unit[hn], current_order - 852008)) == old_id[tp_item]) or (current_order == OrderId("massteleport") and GetUnitAbilityLevel(hero_unit[hn], 'AHmt') > 0) then
         call CreateDebugTag("HERO: Already teleporting", 10, hero_unit[hn], 4.00, 2.00)
-        call GoHomeIfMainHero(hero_unit[hn], GetLocationX(home_location), GetLocationY(home_location))
         if not teleporting and teleportloc != null then // unknown destination as was triggered by hardcoded logic
           call RemoveLocation(teleportloc)
           set teleportloc = null
         endif
+        set teleport_retreat_pending = false
+        set teleport_retreat_applied = false
         set teleporting = true
         call TQAddUnitJob(0.5, TELEPORT, 0, hero_unit[hn])
       endif
@@ -344,13 +352,15 @@ function MicroHeroJob takes integer hn returns nothing
     set teleportdistance = DistanceBetweenPoints(hero_loc[hn], town_loc[most_threatened_town])
     if not teleporting and GetUnitState(hero_unit[hn], UNIT_STATE_LIFE) < RMax(flee_health_percentage * GetUnitState(hero_unit[hn], UNIT_STATE_MAX_LIFE), flee_minimum_health) and not IsUnitInGroup(hero_unit[hn], unit_healing) then
       call SaveHero(hn,armyOfHero)
+      call TQAddJob(1 * sleep_multiplier, MICRO_HERO, hn)
+      return
     elseif not teleporting and not IsUnitInGroup(hero_unit[hn], unit_healing) and hero_hp_loss[hn] >= anti_focus_hero_hp_loss and hero_enemy_density[hn] > 0.75 and hero_enemy_density[hn] > hero_ally_density[hn] * anti_focus_density_ratio then
       if TriggerAntiFocusRetreat(hero_unit[hn], hero_enemy_loc[hn], hero_ally_loc[hn]) then
         call TQAddJob(1 * sleep_multiplier, MICRO_HERO, hn)
         return
       endif
     endif
-    if armyOfHero >= 0 and not teleporting and GetItemNumberOnUnit(tp_item, hero_unit[hn]) > 0 then
+    if armyOfHero >= 0 and not teleporting and not IsUnitInGroup(hero_unit[hn], unit_healing) and GetItemNumberOnUnit(tp_item, hero_unit[hn]) > 0 then
       if town_threatened and town_threat[most_threatened_town] >= teleport_min_threat and teleportdistance > LinearInterpolation(teleport_low_threat, teleport_high_threat, teleport_low_threat_distance, teleport_high_threat_distance, town_threat[most_threatened_town]) and town_can_tp[most_threatened_town] and army_strength[armyOfHero] >= teleport_army_min_strength then
           call CreateDebugTag("HERO: Teleporting to threatened town", 10, hero_unit[hn], 4.00, 2.00)
           call TeleportToLoc(hero_unit[hn], town_loc[most_threatened_town])
