@@ -313,6 +313,8 @@ globals
     real teleport_army_min_strength = 20  // how big the army need to be for use of TP to threatened town
     real teleport_min_threat = 70  // minimum threat level TP use is allowed on  
     integer hero_self_tp_min_level = 2  // Minimum hero level required before self-preservation TP is allowed
+    integer hero2_fast_track_prio = 130  // Priority floor for the second hero once tier-2 hero prerequisites are satisfied
+    integer hero3_fast_track_prio = 120  // Priority floor for the third hero once tier-3 hero prerequisites are satisfied
     integer shredder_peon_count = 12  // how many peons does a goblin shredder replace in lumber harvesting
     integer minimum_peon_wood = 2000 // computers don't build any workers for lumber harvesting if they have more lumber than this
     integer maximum_peon_wood = 200  // computers build all needed workers for lumber harvesting if they have lumber lower than this  
@@ -10744,12 +10746,26 @@ endfunction
 //AMAI Build Code
 //============================================================================
 
+function GetHeroFastTrackPrio takes integer unitid, integer prio returns integer
+  if unitid == hero[2] and not hero_built[2] and needed1[unitid] != 0 and needed2[unitid] != 0 and TownCountDone(needed1[unitid]) > 0 and TownCountDone(needed2[unitid]) > 0 then
+    return Max(prio, hero2_fast_track_prio)
+  endif
+  if unitid == hero[3] and not hero_built[3] and needed1[unitid] != 0 and needed2[unitid] != 0 and needed3[unitid] != 0 and TownCountDone(needed1[unitid]) > 0 and TownCountDone(needed2[unitid]) > 0 and TownCountDone(needed3[unitid]) > 0 then
+    return Max(prio, hero3_fast_track_prio)
+  endif
+  return prio
+endfunction
+
 // Returns false if already built or invalid so no need to build its prerequisites
 function SetBuildAllAMCore takes integer t, integer qty, integer unitid, integer town, integer bloc, integer prio returns boolean
   local integer i = 0
   local integer j = 0
+  local integer effective_prio = prio
   if unitid == 0 or qty == 0 then
     return false
+  endif
+  if t == BUILD_UNIT then
+    set effective_prio = GetHeroFastTrackPrio(unitid, prio)
   endif
   if t == BUILD_UPGRADE then
     if GetUpgradeLevel(old_id[unitid]) >= qty then
@@ -10769,7 +10785,7 @@ function SetBuildAllAMCore takes integer t, integer qty, integer unitid, integer
   set j = Max(build_length - 1,0)
   loop
     exitwhen i >= build_length
-    exitwhen build_prio[i] < prio
+    exitwhen build_prio[i] < effective_prio
     if build_item[i] == unitid and build_qty[i] >= qty and build_town[i] == town then
       call ReleaseBuildLock()
       return true
@@ -10791,12 +10807,12 @@ function SetBuildAllAMCore takes integer t, integer qty, integer unitid, integer
   set build_item[i] = unitid
   set build_town[i] = town
   set build_loc[i] = bloc
-  set build_prio[i] = prio
+  set build_prio[i] = effective_prio
   set build_length = build_length + 1
   call ReleaseBuildLock()
 
   if qty > 1 then
-    call SetBuildAllAMCore(t, qty - 1, unitid, town, bloc, prio + prio_q_inc )
+    call SetBuildAllAMCore(t, qty - 1, unitid, town, bloc, effective_prio + prio_q_inc )
   endif
 
   return true
