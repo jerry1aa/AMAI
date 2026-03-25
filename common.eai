@@ -315,6 +315,12 @@ globals
     integer hero_self_tp_min_level = 2  // Minimum hero level required before self-preservation TP is allowed
     integer hero2_fast_track_prio = 130  // Priority floor for the second hero once tier-2 hero prerequisites are satisfied
     integer hero3_fast_track_prio = 120  // Priority floor for the third hero once tier-3 hero prerequisites are satisfied
+    real player_target_distance_scale = 160.0  // lower value makes player attack target scoring prefer nearer enemy targets more strongly
+    real target_good_distance_cap = 75.0  // maximum extra target strength added from travel distance when judging if an attack target is worthwhile
+    integer creep_target_strength_weight = 12  // how much creep strength difference matters relative to distance when selecting a safe creep camp
+    real creep_target_distance_scale = 140.0  // lower value makes the AI favor nearer safe creep camps more strongly
+    real expansion_anchor_distance_weight = 0.70  // weight of current army or hero travel distance in expansion scoring
+    real expansion_home_distance_weight = 0.30  // weight of original home-based expansion distance in expansion scoring
     integer shredder_peon_count = 12  // how many peons does a goblin shredder replace in lumber harvesting
     integer minimum_peon_wood = 2000 // computers don't build any workers for lumber harvesting if they have more lumber than this
     integer maximum_peon_wood = 200  // computers build all needed workers for lumber harvesting if they have lumber lower than this  
@@ -7254,7 +7260,6 @@ set temphumanu = null
 return mindistance
 endfunction
 
-//============================================================================
 function GetNearestEnemy takes nothing returns player
 local integer i = 0
 local integer nearplayer = 30
@@ -7455,14 +7460,28 @@ endfunction
 function add_exp_rp takes nothing returns nothing
   local integer i = 0
   local real way_dist = 0.0
+  local real anchor_dist = 0.0
   local integer max = 0
   local integer min = 1000000
   local real sv = 0.7
   local integer red = 0
+  local location anchorloc = null
+  local location targetloc = null
+  if main_army >= 0 and army_loc[main_army] != null and (GetLocationX(army_loc[main_army]) != 0 or GetLocationY(army_loc[main_army]) != 0) then
+    set anchorloc = Location(GetLocationX(army_loc[main_army]), GetLocationY(army_loc[main_army]))
+  elseif major_hero != null and UnitAlive(major_hero) then
+    set anchorloc = GetUnitLoc(major_hero)
+  else
+    set anchorloc = Location(GetLocationX(home_location), GetLocationY(home_location))
+  endif
   loop
     exitwhen i >= exp_number
 //    set way_dist = WayMinRangeToEnemy_d(GetUnitLoc(exp_unit[i]))
-    set exp_rp[i] = ExpansionFormula(R2I(exp_dist[i]), exp_unit[i])
+    set targetloc = GetUnitLoc(exp_unit[i])
+    set anchor_dist = DistanceBetweenPoints_kd(anchorloc, targetloc)
+    call RemoveLocation(targetloc)
+    set targetloc = null
+    set exp_rp[i] = ExpansionFormula(R2I(anchor_dist * expansion_anchor_distance_weight + exp_dist[i] * expansion_home_distance_weight), exp_unit[i])
     if exp_rp[i] > max then
       set max = exp_rp[i]
     endif
@@ -7485,6 +7504,8 @@ function add_exp_rp takes nothing returns nothing
 //      endloop
 //    endif
 //  endif
+  call RemoveLocation(anchorloc)
+  set anchorloc = null
 endfunction
 
 //============================================================================
@@ -7546,6 +7567,9 @@ function ChooseExpansion takes nothing returns nothing
   local integer i = 0
   local integer exp_chosen = 0
   local integer gold = 2 * GetUnitGoldCost2(racial_expansion)
+  local real anchor_dist = 0.0
+  local location anchorloc = null
+  local location targetloc = null
   set exp_number = 0
   loop
     exitwhen i >= expansion_list_length
@@ -7567,15 +7591,28 @@ function ChooseExpansion takes nothing returns nothing
     endloop
   endif
   // compute rebuild expansion ratings
+  if main_army >= 0 and army_loc[main_army] != null and (GetLocationX(army_loc[main_army]) != 0 or GetLocationY(army_loc[main_army]) != 0) then
+    set anchorloc = Location(GetLocationX(army_loc[main_army]), GetLocationY(army_loc[main_army]))
+  elseif major_hero != null and UnitAlive(major_hero) then
+    set anchorloc = GetUnitLoc(major_hero)
+  else
+    set anchorloc = Location(GetLocationX(home_location), GetLocationY(home_location))
+  endif
   set i = 0
   loop
     exitwhen i >= rebuild_exp_number
-    set rebuild_exp_rp[i] = ExpansionFormula(R2I(rebuild_exp_dist[i]), rebuild_exp_unit[i])
+    set targetloc = GetUnitLoc(rebuild_exp_unit[i])
+    set anchor_dist = DistanceBetweenPoints_kd(anchorloc, targetloc)
+    call RemoveLocation(targetloc)
+    set targetloc = null
+    set rebuild_exp_rp[i] = ExpansionFormula(R2I(anchor_dist * expansion_anchor_distance_weight + rebuild_exp_dist[i] * expansion_home_distance_weight), rebuild_exp_unit[i])
     if rebuild_exp_rp[i] < 0 then
       set rebuild_exp_rp[i] = 0
     endif
     set i = i + 1
   endloop
+  call RemoveLocation(anchorloc)
+  set anchorloc = null
   if active_expansion and not pathing_done and exp_number < c_enemy_total + c_ally_total + 1 then
     set active_expansion = false
   endif
@@ -13946,35 +13983,75 @@ function GetIntervalCreep takes unit u, integer lower, integer upper, integer st
     return GetIntervalCreep(u, lower, middle, str, anti_air_strength, allow_air, sd - 1)
 endfunction
 
-//============================================================================
 function GetFittingCreep takes unit u, integer str returns unit
   local integer anti_air_strength = R2I(GetPlayerAntiAirStrength(ai_player))
-  local integer creepstrength = 0
-  local boolean allow_air = false
-  local integer lvl = str
-
-  set u = GetCreepCamp(1, lvl, true)
-  if u != null then
-    set air_strength = GetLocationCreepAirStrength(GetUnitX(u), GetUnitY(u), creep_camp_radius)
+  local integer i = 1
+  local integer candidate_strength = 0
+  local integer candidate_air_strength = 0
+  local integer best_strength = 0
+  local real distance_penalty = 0.0
+  local real candidate_score = 0.0
+  local real best_score = 1000000.0
+  local unit candidate = null
+  local location anchorloc = null
+  local location targetloc = null
+  if main_army >= 0 and army_loc[main_army] != null and (GetLocationX(army_loc[main_army]) != 0 or GetLocationY(army_loc[main_army]) != 0) then
+    set anchorloc = Location(GetLocationX(army_loc[main_army]), GetLocationY(army_loc[main_army]))
+  elseif major_hero != null and UnitAlive(major_hero) then
+    set anchorloc = GetUnitLoc(major_hero)
+  else
+    set anchorloc = Location(GetLocationX(home_location), GetLocationY(home_location))
   endif
-  set allow_air = air_strength <= anti_air_strength
-
-  if not allow_air then
-    set u = GetCreepCamp(1, lvl, false)
-  endif
-
-  //call Trace("Our strength: " + Int2Str(str))
+  loop
+    exitwhen i > 100
+    set candidate = GetCreepCamp(1, i, true)
+    if candidate != null and UnitAlive(candidate) then
+      set candidate_strength = GetCreepCampStrength(candidate)
+      if candidate_strength < str then
+        set candidate_air_strength = GetLocationCreepAirStrength(GetUnitX(candidate), GetUnitY(candidate), creep_camp_radius)
+        if candidate_air_strength <= anti_air_strength then
+          set targetloc = GetUnitLoc(candidate)
+          set distance_penalty = DistanceBetweenPoints_kd(anchorloc, targetloc) / creep_target_distance_scale
+          call RemoveLocation(targetloc)
+          set targetloc = null
+          set candidate_score = I2R((str - candidate_strength) * creep_target_strength_weight) + distance_penalty
+          if candidate_score < best_score then
+            set u = candidate
+            set best_score = candidate_score
+            set best_strength = candidate_strength
+          endif
+        endif
+      endif
+    endif
+    set candidate = GetCreepCamp(1, i, false)
+    if candidate != null and UnitAlive(candidate) then
+      set candidate_strength = GetCreepCampStrength(candidate)
+      if candidate_strength < str then
+        set candidate_air_strength = GetLocationCreepAirStrength(GetUnitX(candidate), GetUnitY(candidate), creep_camp_radius)
+        if candidate_air_strength <= anti_air_strength then
+          set targetloc = GetUnitLoc(candidate)
+          set distance_penalty = DistanceBetweenPoints_kd(anchorloc, targetloc) / creep_target_distance_scale
+          call RemoveLocation(targetloc)
+          set targetloc = null
+          set candidate_score = I2R((str - candidate_strength) * creep_target_strength_weight) + distance_penalty
+          if candidate_score < best_score then
+            set u = candidate
+            set best_score = candidate_score
+            set best_strength = candidate_strength
+          endif
+        endif
+      endif
+    endif
+    set i = i + 1
+  endloop
+  call RemoveLocation(anchorloc)
+  set anchorloc = null
   if u != null then
-    set creepstrength = GetCreepCampStrength(u)
-  endif  
-  if u != null and creepstrength < str and air_strength <= anti_air_strength then
-    //call Trace("Creep match")
-    call Trace("Creeping strength: " + Int2Str(creepstrength))
-    set air_strength = creepstrength
+    call Trace("Creeping strength: " + Int2Str(best_strength))
+    set air_strength = best_strength
     return u
   endif
-  return GetIntervalCreep(u, 1,100,str, anti_air_strength, allow_air, camp_scan_depth)
-
+  return null
 endfunction
 
 //============================================================================
@@ -14189,11 +14266,26 @@ endfunction
 // (AMAI)  ChooseAttackTarget
 //============================================================================
 function GetRangePenalty takes unit target returns real
-  if major_hero == null or not UnitAlive(major_hero) or not UnitAlive(target) then
-    return DistanceBetweenPoints_kd(home_location, GetPlayerStartLocationLoc(GetOwningPlayer(target)))
-  else
-    return DistanceBetweenUnits(major_hero, target) / 1400
+  local location anchorloc = null
+  local location targetloc = null
+  local real distance = 1000000.0
+  if target == null or not UnitAlive(target) then
+    return distance / player_target_distance_scale
   endif
+  if main_army >= 0 and army_loc[main_army] != null and (GetLocationX(army_loc[main_army]) != 0 or GetLocationY(army_loc[main_army]) != 0) then
+    set anchorloc = Location(GetLocationX(army_loc[main_army]), GetLocationY(army_loc[main_army]))
+  elseif major_hero != null and UnitAlive(major_hero) then
+    set anchorloc = GetUnitLoc(major_hero)
+  else
+    set anchorloc = Location(GetLocationX(home_location), GetLocationY(home_location))
+  endif
+  set targetloc = GetUnitLoc(target)
+  set distance = DistanceBetweenPoints_kd(anchorloc, targetloc)
+  call RemoveLocation(anchorloc)
+  call RemoveLocation(targetloc)
+  set anchorloc = null
+  set targetloc = null
+  return distance / player_target_distance_scale
 endfunction
 
 //============================================================================
@@ -14351,9 +14443,7 @@ endfunction
 //============================================================================
 function GetTargetStrength takes unit target returns integer
   local integer str = GetUnexactPlayerStrength(GetOwningPlayer(target))
-  if str < 100 then
-    set str = Min(str + R2I(GetRangePenalty(target)), 100)
-  endif
+  set str = str + R2I(RMin(GetRangePenalty(target), target_good_distance_cap))
   return str
 endfunction
 
