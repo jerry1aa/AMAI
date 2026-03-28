@@ -781,6 +781,8 @@ globals
     integer expansion_target_bonus = 7
     integer comp_chosen_target_bonus = 5
     real comp_chosen_target_rate = 0.5
+    player attack_sticky_player = null  // currently committed attack target player for stickiness
+    real attack_target_stickiness = 20.0  // score discount for current target (~3200 map-unit advantage before switching
 
     boolean balancing = false
     texttag debugstrattag = CreateTextTag()
@@ -14347,6 +14349,9 @@ function GetWeakAndNearEnemy takes nothing returns player
       set cbuilding = GetBuilding(enemy_force[i])
       if cbuilding != null and UnitAlive(cbuilding) then
         set cstr = GetUnexactPlayerStrength(enemy_force[i]) + GetRangePenalty(cbuilding)
+        if enemy_force[i] == attack_sticky_player then
+          set cstr = cstr - attack_target_stickiness
+        endif
         if cstr < minstr then
           set pmin = i
           set minstr = cstr
@@ -14530,6 +14535,7 @@ function ChooseAnEnemyTarget takes unit u returns unit
   //call Trace("Choosing weakest closest Enemy")
   endif
   if target_enemy != null then
+    set attack_sticky_player = target_enemy
     call GroupEnumUnitsOfPlayer(g, target_enemy, null)
     set enemy_base = GetPlayerStartLocationLoc(target_enemy)
     set g = SelectByLocation(g, enemy_base, 1000, false)
@@ -14539,6 +14545,9 @@ function ChooseAnEnemyTarget takes unit u returns unit
     set u = FirstOfGroup(g)
     if u == null then
       set u = GetBuilding(target_enemy)
+    endif
+    if u == null then
+      set attack_sticky_player = null  // target eliminated, clear stickiness
     endif
     call RemoveLocation(enemy_base)
   endif

@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 - Expansion site scoring now uses only home base distance (100%) instead of a weighted mix of army position (70%) and home distance (30%), so expansion choice is stable and unaffected by where the army happens to be.
+- Attack target selection now applies a stickiness bonus to the current target in `GetWeakAndNearEnemy`, requiring a rival to be meaningfully better (default 20 score points, ~3200 map units) before the AI switches attack focus.
 - Expansion is no longer blocked when the base is under threat (`town_threatened`); the peon-level safety checks in `BUILD_EXPANSION` still pause the worker if enemies are directly at the expansion site.
 - AI target selection now weights distance much more strongly across player attacks, creep camps, and expansion choice, using the current army position first and falling back to hero/home so nearby valid objectives are preferred more often.
 - Missing second and third heroes are now fast-tracked in the shared build queue once their tier prerequisites are completed, so all races across TFT, ROC, and REFORGED request new heroes much sooner after tier-2 and tier-3 town-hall upgrades finish.
