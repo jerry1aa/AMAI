@@ -319,8 +319,8 @@ globals
     real target_good_distance_cap = 75.0  // maximum extra target strength added from travel distance when judging if an attack target is worthwhile
     integer creep_target_strength_weight = 12  // how much creep strength difference matters relative to distance when selecting a safe creep camp
     real creep_target_distance_scale = 140.0  // lower value makes the AI favor nearer safe creep camps more strongly
-    real expansion_anchor_distance_weight = 0.70  // weight of current army or hero travel distance in expansion scoring
-    real expansion_home_distance_weight = 0.30  // weight of original home-based expansion distance in expansion scoring
+    real expansion_anchor_distance_weight = 0.00  // weight of current army or hero travel distance in expansion scoring
+    real expansion_home_distance_weight = 1.00  // weight of original home-based expansion distance in expansion scoring
     integer shredder_peon_count = 12  // how many peons does a goblin shredder replace in lumber harvesting
     integer minimum_peon_wood = 2000 // computers don't build any workers for lumber harvesting if they have more lumber than this
     integer maximum_peon_wood = 200  // computers build all needed workers for lumber harvesting if they have lumber lower than this  
@@ -12208,11 +12208,6 @@ function StartExpansionAM takes integer qty, integer hall returns integer
     return BUILT_ALL
   endif
   
-  if town_threatened then
-    call Trace("AMAIStartexpa: Town threatened")
-    return CANNOT_BUILD
-  endif
-
   if current_expansion == null then
     call Trace("AMAIStartexpa: Expansion Not Found")
     return CANNOT_BUILD

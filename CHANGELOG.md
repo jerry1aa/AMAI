@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Documented the default repository agent workflow in `AGENTS.md`, with the main agent owning research/planning/review and optional subagent delegation for bounded coding/testing.
 
 ### Changed
+- Expansion site scoring now uses only home base distance (100%) instead of a weighted mix of army position (70%) and home distance (30%), so expansion choice is stable and unaffected by where the army happens to be.
+- Expansion is no longer blocked when the base is under threat (`town_threatened`); the peon-level safety checks in `BUILD_EXPANSION` still pause the worker if enemies are directly at the expansion site.
 - AI target selection now weights distance much more strongly across player attacks, creep camps, and expansion choice, using the current army position first and falling back to hero/home so nearby valid objectives are preferred more often.
 - Missing second and third heroes are now fast-tracked in the shared build queue once their tier prerequisites are completed, so all races across TFT, ROC, and REFORGED request new heroes much sooner after tier-2 and tier-3 town-hall upgrades finish.
 - Hero town-portal usage is now more battle-aware: self-save TP is blocked for level-1 heroes, low-HP retreat decisions no longer fall through into the threatened-town TP branch, and self-save TP no longer auto-retreats the whole army while defensive town TP still can.
