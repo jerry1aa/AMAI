@@ -89,7 +89,7 @@ function GroupOrderWindWalkInstant_d takes group g returns nothing
 	loop
 		set u = FirstOfGroup(g)
 		exitwhen u == null
-		if GetUnitAbilityLevel(u, 'AOwk') > 0 or GetUnitAbilityLevel(u, 'ANwk') > 0 then
+		if IsUnitAIControllable(u) and (GetUnitAbilityLevel(u, 'AOwk') > 0 or GetUnitAbilityLevel(u, 'ANwk') > 0) then
 			if not IsUnitInvisible(u, Player(PLAYER_NEUTRAL_AGGRESSIVE)) then
 				//call CreateDebugTag("HARASS: WINDWALK COMMANDED", 10, u, 3.00, 1.50)
 				call IssueImmediateOrder(u, "windwalk")
@@ -166,7 +166,9 @@ function HarassJob takes integer key, unit target returns nothing
     endif
     if GetUnitState(u, UNIT_STATE_LIFE) <= RMax(flee_health_percentage * GetUnitState(u, UNIT_STATE_MAX_LIFE), flee_minimum_health) and not IsUnitInGroup(u, unit_healing) and IsUnitType(u, UNIT_TYPE_HERO) == false then // Not used on heroes as micro hero is in control of that
         call GroupAddUnit(unit_healing, u)
-        call IssuePointOrder(u, "move", GetLocationX(home_location), GetLocationY(home_location))
+        if IsUnitAIControllable(u) then
+          call IssuePointOrder(u, "move", GetLocationX(home_location), GetLocationY(home_location))
+        endif
         call TQAddUnitJob(0.5, SEND_HOME, 0, u)  // 0 is home_location
         call GroupRemoveUnit(harasser, u)
         call GroupRemoveUnit(unit_harassing, u)
@@ -187,9 +189,22 @@ function HarassJob takes integer key, unit target returns nothing
   call DestroyGroup(g)
   set g = null
   set u = null
+  // Remove player-controlled units from harasser group so group orders respect the lock
+  set g = CopyGroup(harasser)
+  loop
+    set u = FirstOfGroup(g)
+    exitwhen u == null
+    if not IsUnitAIControllable(u) then
+      call GroupRemoveUnit(harasser, u)
+    endif
+    call GroupRemoveUnit(g, u)
+  endloop
+  call DestroyGroup(g)
+  set g = null
+  set u = null
   if hu == null then
     set hu = FirstOfGroup(harasser)
-  endif  
+  endif
 
 
   if town_threatened and (not state_attacking or hero_harass) and state_retreat == 0 then
@@ -313,7 +328,9 @@ function HarassJob takes integer key, unit target returns nothing
       else
         if timedelay >= 5 or timedelay == -1 or (hu != null and IsUnitVisible(hu, GetOwningPlayer(target))) then
           call GroupTargetOrder(harasser, "attack", target)
-          call IssueTargetOrder(hu, "attack", target)
+          if IsUnitAIControllable(hu) then
+            call IssueTargetOrder(hu, "attack", target)
+          endif
         endif
         call CreateDebugTag("HARASS: Attack Target", 10, target, 3.00, 1.50)
       endif

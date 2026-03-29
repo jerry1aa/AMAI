@@ -948,7 +948,7 @@ globals
   constant integer ALLIANCE_TARGET = 3
   constant integer PLAYER_CONTROL_LOCK = 4
   constant integer ANTI_FOCUS_LOCK = 5
-  constant integer PLAYER_CONTROL_LOCK_DURATION = 50 // 5 seconds (deciseconds)
+  constant integer PLAYER_CONTROL_LOCK_DURATION = 100 // 10 seconds (deciseconds)
   hashtable unit_micro_cache = InitHashtable()
   constant integer UNIT_MICRO_LAST_HP = 1
 

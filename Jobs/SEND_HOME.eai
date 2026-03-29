@@ -3,6 +3,9 @@
 
 function SendHomeMoveUnitToLoc takes unit u, location l returns nothing
 	local integer enemystrength = GetLocationNonCreepStrength(GetUnitX(u), GetUnitY(u), 800)
+	if not IsUnitAIControllable(u) then
+		return
+	endif
 	if GetUnitAbilityLevel(u, 'AOwk') > 0 or GetUnitAbilityLevel(u, 'ANwk') > 0 then
 		if enemystrength > 0 and not IsUnitInvisibleAM(u, Player(PLAYER_NEUTRAL_AGGRESSIVE)) then
 			call IssueImmediateOrder(u, "windwalk")
@@ -58,6 +61,10 @@ function SendUnitHomeJob takes unit u, integer p returns nothing
   if GetUnitState(u, UNIT_STATE_LIFE) <= 0 then
     call CreateDebugTag("SEND_HOME unit dead", 10, u, 3.00, 1.50)
     call TQAddUnitJob(2, RESET_GUARD_POSITION, p, u)
+    return
+  endif
+  if not IsUnitAIControllable(u) then
+    call TQAddUnitJob(4, SEND_HOME, p, u)
     return
   endif
   if IsUnitType(u, UNIT_TYPE_HERO) then
