@@ -164,7 +164,7 @@ function HarassJob takes integer key, unit target returns nothing
         set hero_harass = true
       endif  
     endif
-    if GetUnitState(u, UNIT_STATE_LIFE) <= RMax(flee_health_percentage * GetUnitState(u, UNIT_STATE_MAX_LIFE), flee_minimum_health) and not IsUnitInGroup(u, unit_healing) and IsUnitType(u, UNIT_TYPE_HERO) == false then // Not used on heroes as micro hero is in control of that
+    if GetUnitState(u, UNIT_STATE_LIFE) <= GetDynamicFleePercentage() * GetUnitState(u, UNIT_STATE_MAX_LIFE) and not IsUnitInGroup(u, unit_healing) and IsUnitType(u, UNIT_TYPE_HERO) == false then // Not used on heroes as micro hero is in control of that
         call GroupAddUnit(unit_healing, u)
         if IsUnitAIControllable(u) then
           call IssuePointOrder(u, "move", GetLocationX(home_location), GetLocationY(home_location))

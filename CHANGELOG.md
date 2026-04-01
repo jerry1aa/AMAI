@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Documented the default repository agent workflow in `AGENTS.md`, with the main agent owning research/planning/review and optional subagent delegation for bounded coding/testing.
 
 ### Changed
+- Unit flee threshold is now dynamic based on current food usage: small armies (<=30 food) flee at 50% HP to preserve units, large armies (>=70 food) fight to the death, with linear interpolation in between. Heroes still use the static 25% threshold.
 - Expansion site scoring now uses only home base distance (100%) instead of a weighted mix of army position (70%) and home distance (30%), so expansion choice is stable and unaffected by where the army happens to be.
 - Attack target selection now applies a stickiness bonus to the current target in `GetWeakAndNearEnemy`, requiring a rival to be meaningfully better (default 20 score points, ~3200 map units) before the AI switches attack focus.
 - Expansion is no longer blocked when the base is under threat (`town_threatened`); the peon-level safety checks in `BUILD_EXPANSION` still pause the worker if enemies are directly at the expansion site.

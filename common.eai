@@ -2837,6 +2837,14 @@ function FoodSpace takes nothing returns integer
 endfunction
 
 //============================================================================
+// Returns a dynamic flee HP percentage based on current food usage.
+// Low food (<=30) -> 50% (flee early to preserve units)
+// High food (>=70) -> 0% (expendable, fight to the death)
+function GetDynamicFleePercentage takes nothing returns real
+  return LinearInterpolation(30, 70, 0.50, 0.00, I2R(FoodUsed()))
+endfunction
+
+//============================================================================
 function FoodAvail takes integer base returns integer
   return GetFoodMade(old_id[racial_farm]) * TownCount(racial_farm) + GetFoodMade(old_id[base]) * TownCount(base)
 endfunction
