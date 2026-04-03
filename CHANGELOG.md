@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## Unreleased
 
 ### Added
+- Added Hippo2 ELF TFT strategy: a pure Hippogryph Rider build with tier 1 Archer opener, tier 2 dual-Aviary HIPPO_RIDER push, and tier 3 mass HIPPO_RIDER endgame.
+- Added `docs/BuildSequence-Functions.md`: reference for all functions usable in `BuildSequence.ai`.
 - Configurable AI gold and lumber income strength modifiers with neutral defaults, driven by a periodic runtime adjustment job.
 - Game-start AI economy preset dialog to choose one shared income modifier for all AMAI players before the match begins.
 - Commander: force attack commands that can override retreat behavior during player-commanded attacks.

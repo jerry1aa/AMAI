@@ -801,6 +801,7 @@ function init_strategy_Hippo takes nothing returns nothing
 
 
 
+
 endfunction
 function build_sequence_Hippo takes nothing returns nothing
 if tier == 3 then
@@ -813,6 +814,7 @@ if tier == 3 then
       call BuildUpgr(1, uUPG_BOWS, 70  )
       call BuildUpgr(1, uUPG_MARKSMAN, 70)
       call BuildUnit(1, uDEN_OF_WONDERS, 45)
+
 
 
 
@@ -886,11 +888,13 @@ elseif tier == 2 then
 
 
 
+
 else
 
       call SetBuildReact(18, 3, uARCHER, 1, uHUNTRESS, (enemy_normal + enemy_mediumarmor - (enemy_air * 2) - enemy_piercing - enemy_siege), 4, 25, 56) 
       call BuildUnit(1, uTREE_AGES, 50)
       call BuildUnit(1, hero[1], 80)
+
 
 
 
@@ -2588,6 +2592,71 @@ else
 
 
 
+
+
+
+
+
+endif
+endfunction
+
+function init_strategy_Hippo2 takes nothing returns nothing
+// Insert strategy init code here.
+
+
+
+
+
+
+endfunction
+function build_sequence_Hippo2 takes nothing returns nothing
+if tier == 3 then
+// Insert tier3 goals here.
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+call BuildUnit(1, hero[3], 70)
+
+call BuildUnit(2, uANCIENT_WIND, 70)
+call BuildUpgr(1, uUPG_HIPPO_TAME, 70)
+call BuildUpgr(1, uUPG_BOWS, 70  )
+call BuildUpgr(1, uUPG_MARKSMAN, 70)
+call BuildUnit(1, uDEN_OF_WONDERS, 45)
+
+call BuildUnit(12, uHIPPO_RIDER, 40)
+      
+
+
+
+
+
+
+
+
+elseif tier == 2 then
+// Insert tier2 goals here.
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+call BuildUnit(2, uANCIENT_WIND, 70)
+call BuildUpgr(1, uUPG_BOWS, 70  )
+call BuildUpgr(1, uUPG_HIPPO_TAME, 70)
+
+call BuildUnit(8, uHIPPO_RIDER, 40)
+
+call BuildUnit(1, uTREE_ETERNITY, 10)
+
+
+
+
+      call BuildUnit(1, uDEN_OF_WONDERS, 55)
+
+
+
+
+else
+// Insert tier1 goals here.
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(10, uARCHER, 50)
+call BuildUnit(1, uTREE_AGES, 50)
 
 
 
