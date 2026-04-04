@@ -30,7 +30,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Orc weapon and armor upgrades now get a rich-economy priority boost across TFT, ROC, and REFORGED when gold and lumber are high.
 - Undead graveyard and crypt attack/armor upgrades now get a rich-economy priority boost across TFT, ROC, and REFORGED when gold and lumber are high.
 - Night Elf moon/wild strength and armor upgrades now get a rich-economy priority boost across TFT, ROC, and REFORGED when gold and lumber are high.
-- AI now prioritizes racial hall teching earlier under a rich economy, reducing delays to tier-2 and tier-3 unit access across TFT, ROC, and REFORGED.
 - Commander `NO CREEP` restrictions now also stop special creep-only behaviors such as militia expansion clearing, Ancient of War creep rushes, and ancient expansion creep clearing.
 - Low-HP heroes now stop joining local focus-fire orders before they reach emergency flee range, reducing unsafe chase behavior.
 - Heroes now drop out of local focus-fire when a chase becomes unsafe, based on tighter HP, density, army-leash, and hero-target distance checks.
