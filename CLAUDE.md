@@ -19,6 +19,7 @@
 - **Plans**: when executing a plan, save it under `docs/plan/` with a date + daily index in the filename (default `YYYY-MM-DD-01`, then `YYYY-MM-DD-02`, etc.).
 - **Version coverage**: if a change relates to game-version-specific behavior or data, cover all supported versions (`TFT`, `ROC`, and `REFORGED`) unless the user explicitly scopes the change to fewer versions.
 - **Agent workflow**: the main agent owns research, planning, repo-rule compliance, review, and final integration; one subagent may be used for bounded coding/testing work when delegation is useful, but subagent use is optional for small or tightly coupled tasks.
+- **No casual judgements**: do not make general claims about game mechanics, race behaviour, or code behaviour without first verifying against actual source files or data (e.g. `StandardUnits.txt`, `.eai` source, compiled scripts). Check before asserting.
 
 ## Useful file locations
 
