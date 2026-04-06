@@ -11054,6 +11054,9 @@ function GetTier takes nothing returns integer
   loop
     exitwhen i <= 1
     exitwhen GetUnitCountDone(old_id[racial_hall[i]]) >= 1
+    if GetUnitCount(old_id[racial_hall[i]]) >= 1 then
+      return i - 1  // Hall exists but mid-upgrade — treat as previous tier
+    endif
     set i = i - 1
   endloop
   return i

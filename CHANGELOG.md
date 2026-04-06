@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Documented persistent agent preferences in AGENTS.md.
 - Documented the default repository agent workflow in `AGENTS.md`, with the main agent owning research/planning/review and optional subagent delegation for bounded coding/testing.
 
+### Fixed
+- `GetTier` now correctly returns the current completed tier during a town-hall mid-upgrade: when a hall is upgrading (exists but not done), it returns the previous tier instead of falling back to tier 1.
+
 ### Changed
 - Unit flee threshold is now dynamic based on current food usage: small armies (<=30 food) flee at 50% HP to preserve units, large armies (>=70 food) fight to the death, with linear interpolation in between. Heroes still use the static 25% threshold.
 - Expansion site scoring now uses only home base distance (100%) instead of a weighted mix of army position (70%) and home distance (30%), so expansion choice is stable and unaffected by where the army happens to be.
