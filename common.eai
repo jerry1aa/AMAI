@@ -11681,6 +11681,11 @@ function CheckNotBuiltFrom takes integer unitid returns boolean
     return false
   endif
 #ENDINCLUDE
+#INCLUDETABLE <$VER$\UnitConversions.txt> #EFR
+  if unitid == u%1 then
+    return false
+  endif
+#ENDINCLUDE
   return true
 endfunction
 
@@ -12013,7 +12018,28 @@ function StartUnitAM takes integer ask_qty, integer unitid, integer town, intege
   #INCLUDETABLE <$VER$\UnitEquivalence.txt> #EFR #COND "%2" eq "BUILT_FROM"
     if unitid == u%1 then
       if GetUpgradeLevel(o%4) >= %5 then
+        call DisplayToAllies("ConvertUnits %1:" + Int2Str(afford_qty + have_qty) + ":" + Int2Str(TownCountDone(u%3)))
         if ConvertUnits(afford_qty + have_qty, o%3) then
+          if (afford_qty + have_qty == need_qty) then
+            return BUILT_ALL
+          else
+            return BUILT_SOME
+          endif
+        else
+          return CANNOT_BUILD
+        endif
+      else
+        return CANNOT_BUILD
+      endif
+    endif
+  #ENDINCLUDE
+
+// Two-source unit merges (e.g. ARCHER + HIPPO -> HIPPO_RIDER)
+  #INCLUDETABLE <$VER$\UnitConversions.txt> #EFR
+    if unitid == u%1 then
+      if GetUpgradeLevel(o%4) >= %5 then
+        call DisplayToAllies("MergeUnits %1:" + Int2Str(afford_qty + have_qty) + ":" + Int2Str(TownCountDone(u%2)) + ":" + Int2Str(TownCountDone(u%3)))
+        if MergeUnits(afford_qty + have_qty, o%2, o%3, o%1) then
           if (afford_qty + have_qty == need_qty) then
             return BUILT_ALL
           else
@@ -13070,6 +13096,7 @@ endfunction
 function ConversionsAM takes integer desire, integer unitid returns nothing
 #INCLUDETABLE <$VER$\UnitConversions.txt> #EFR
   if unitid == u%1 then
+    call DisplayToAllies("MergeUnits %1:" + Int2Str(TownCountDone(u%2)) + ":" + Int2Str(TownCountDone(u%3)))
     call MergeUnits(desire,o%2,o%3,o%1)
   endif
 #ENDINCLUDE

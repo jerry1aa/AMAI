@@ -209,15 +209,15 @@ function global_build_sequence takes nothing returns nothing
     if tier == 1 then
 	endif
     call BuildAdvUpgr2(1, uUPG_ULTRAVISION, 1, TownCountDone(uARCHER) + TownCountDone(uHUNTRESS), 5, 10, 20)
-    	call BuildUpgr(3, uUPG_STR_MOON, 40)
-    	call BuildUpgr(3, uUPG_MOON_ARMOR, 40)
-    	call BuildUpgr(3, uUPG_STR_WILD, 40)
-    	call BuildUpgr(3, uUPG_HIDES, 40)
+    	call BuildUpgr(tier, uUPG_STR_MOON, 40)
+    	call BuildUpgr(tier, uUPG_MOON_ARMOR, 40)
+    	call BuildUpgr(tier, uUPG_STR_WILD, 40)
+    	call BuildUpgr(tier, uUPG_HIDES, 40)
     	if GetGold() > 1200 and GetWood() > 500 then
-    		call BuildUpgr(3, uUPG_STR_MOON, 75)
-    		call BuildUpgr(3, uUPG_MOON_ARMOR, 70)
-    		call BuildUpgr(3, uUPG_STR_WILD, 75)
-    		call BuildUpgr(3, uUPG_HIDES, 70)
+    		call BuildUpgr(tier, uUPG_STR_MOON, 75)
+    		call BuildUpgr(tier, uUPG_MOON_ARMOR, 70)
+    		call BuildUpgr(tier, uUPG_STR_WILD, 75)
+    		call BuildUpgr(tier, uUPG_HIDES, 70)
     	endif
 
 
@@ -2602,7 +2602,11 @@ endfunction
 
 function init_strategy_Hippo2 takes nothing returns nothing
 // Insert strategy init code here.
-    call AddBlock(2, uANCIENT_WIND, false, 0, uTREE_ETERNITY, 99999)
+    call AddBlock(2, uANCIENT_WIND, true, 0, uTREE_ETERNITY, 99999)
+
+
+
+
 
 
 
@@ -2635,7 +2639,7 @@ call ResetDynamicSystem()
 call DynamicBuildUnit(0, 0)
 
 call BuildUnit(1, hero[1], 80)
-call BuildUnit(1, hero[2], 70)
+call BuildUnit(1, hero[2], 75)
 call BuildUnit(1, hero[3], 70)
 
 call BuildUnit(2, uANCIENT_WIND, 70)
@@ -2644,11 +2648,15 @@ call BuildUpgr(1, uUPG_BOWS, 70  )
 call BuildUpgr(1, uUPG_MARKSMAN, 70)
 call BuildUnit(1, uDEN_OF_WONDERS, 65)
 
-call BuildUnit(16, uHIPPO_RIDER, 65)
-call BuildUnit(4, uHIPPO, 63)
-call BuildUnit(4, uARCHER, 60)
+call BuildUnit(4, uHIPPO, 65)
+call BuildUnit(4, uARCHER, 65)
+call BuildUnit(16, uHIPPO_RIDER, 63)
 
       
+
+
+
+
 
 
 
@@ -2689,13 +2697,17 @@ call BuildUpgr(1, uUPG_HIPPO_TAME, 70)
 
 call BuildUnit(1, uDEN_OF_WONDERS, 65)
 
-call BuildUnit(10, uHIPPO_RIDER, 65)
-call BuildUnit(4, uHIPPO, 63)
-call BuildUnit(4, uARCHER, 60)
+call BuildUnit(4, uHIPPO, 65)
+call BuildUnit(4, uARCHER, 65)
+call BuildUnit(10, uHIPPO_RIDER, 63)
 
 if GetUpgradeLevel(old_id[uUPG_HIPPO_TAME]) >= 1 then
 call BuildUnit(1, uTREE_ETERNITY, 10)
 endif
+
+
+
+
 
 
 
@@ -2728,6 +2740,10 @@ call DynamicBuildUnit(0, 0)
 call BuildUnit(1, hero[1], 80)
 call BuildUnit(7, uARCHER, 50)
 call BuildUnit(1, uTREE_AGES, 30)
+
+
+
+
 
 
 

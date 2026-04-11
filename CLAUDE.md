@@ -27,6 +27,12 @@
 - Compiled/packaged AI used by maps: `Scripts/` folder (after running the build scripts).
 - Build helpers and packaging scripts: top-level `.bat` files (e.g. `MakeREFORGED.bat`) and Perl scripts like `InstallToDir.pl`.
 - Electron app and UI: `Electron/` (contains Angular + Electron tooling).
+- Knowledge docs: `docs/` — see below for important references.
+
+## Knowledge references
+
+- **Unit combination paths** (`docs/unit-combination-paths.md`): For two-source unit combinations (e.g. ARCHER + HIPPO → HIPPO_RIDER), `MergeUnits` is the only effective path. `ConvertUnits` (via `BUILT_FROM` in `UnitEquivalence.txt`) cannot handle two-source merges and is effectively dead code for those cases. Read this before modifying unit combination logic or `UnitEquivalence.txt` entries.
+- **BuildSequence function reference** (`docs/BuildSequence-Functions.md`): Reference for build sequence helper functions.
 
 ## Quick workflow for making an AI change
 

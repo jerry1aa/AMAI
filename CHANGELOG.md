@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 - Added Hippo2 ELF TFT strategy: a pure Hippogryph Rider build with tier 1 Archer opener, tier 2 dual-Aviary HIPPO_RIDER push, and tier 3 mass HIPPO_RIDER endgame.
 - Added `docs/BuildSequence-Functions.md`: reference for all functions usable in `BuildSequence.ai`.
+
+### Fixed
+- Call `MergeUnits` during build phase for two-source unit combinations (e.g. HIPPO_RIDER): adds `UnitConversions.txt` block to `RefreshNeeded` and `CheckNotBuiltFrom`, removes HIPPO_RIDER from `UnitEquivalence.txt` BUILT_FROM (dead code for two-source units), extends `UnitConversions.txt` with upgrade gate columns.
+- Fix Hippogryph Rider production broken in TFT and REFORGED:
+  - Add `HIPPO_RIDER` to `UnitConversions.txt` upgrade gate so `MergeUnits` fires correctly in both build and attack phases (BUILT_FROM entry removed as dead code for two-source units)
+  - Fix `HIPPO_RIDER` `needed1`/`needed2` to `ANCIENT_WIND`/`0` in `StandardUnits.txt` (TFT + REFORGED), fixing the `build_free` gate that always blocked production
+  - Add `UPG_HIPPO_TAME` prerequisite for `HIPPO_RIDER` in `REFORGED/NeededExtra.txt`
+  - Rebalance Hippo2 build sequence: equal hippo/archer counts matching rider goal, feeders built before mount is attempted
+  - Fix Hippo2 Tree of Eternity upgrade timing: change `AddBlock` `only_done` from `false` to `true` so the upgrade is blocked until both Ancient Winds are fully built (not just started)
+  - Fix Night Elf Tree of Eternity premature upgrade (all versions): `global_build_sequence` was unconditionally calling `BuildUpgr(3, UPG_STR_MOON/MOON_ARMOR/STR_WILD/HIDES)` — the ML_UPGRADE `RefreshNeeded` path for qty≥3 auto-queues `needed3` (TREE_ETERNITY) via `SetBuildAllAMCore`, bypassing `BlockListCheck`; changed to `BuildUpgr(tier, ...)` so only the upgrade level valid for the current tier is requested (tier1→lvl1 queues HUNTERS_HALL, tier2→lvl2 queues TREE_AGES already done, tier3→lvl3 queues TREE_ETERNITY already done)
 - Configurable AI gold and lumber income strength modifiers with neutral defaults, driven by a periodic runtime adjustment job.
 - Game-start AI economy preset dialog to choose one shared income modifier for all AMAI players before the match begins.
 - Commander: force attack commands that can override retreat behavior during player-commanded attacks.

@@ -1,2 +1,2 @@
-Name in AI	Merge from 1	Merge from 2
-HIPPO_RIDER	ARCHER	HIPPO
+Name in AI	Merge from 1	Merge from 2	Upgrade ID	Upgrade Level
+HIPPO_RIDER	ARCHER	HIPPO	UPG_HIPPO_TAME	1
