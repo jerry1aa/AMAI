@@ -3005,3 +3005,154 @@ call BuildUnit(1, hero[1], 85)
 
 endif
 endfunction
+
+function init_strategy_Dryad2 takes nothing returns nothing
+
+    call AddHarass(2, 6, uDRYAD)
+    set distraction_group = 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+endfunction
+function build_sequence_Dryad2 takes nothing returns nothing
+if tier == 3 then
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 75)
+call BuildUnit(1, hero[3], 70)
+
+call BuildUnit(1, uHUNTERS_HALL, 62)
+call BuildUpgr(1, uUPG_WELL_SPRING, 55)
+call BuildUnit(30, uDRYAD, 45)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+elseif tier == 2 then
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+call BuildUnit(2, uANCIENT_LORE, 68)
+call BuildUpgr(1, uUPG_BOWS, 66)
+call BuildUpgr(1, uUPG_ABOLISH, 60)
+call BuildUnit(15, uDRYAD, 45)
+call BuildUnit(1, uTREE_ETERNITY, 50)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+else
+
+call BuildUnit(8, uARCHER, 40)
+call BuildUnit(1, uTREE_AGES, 50)
+call BuildUnit(1, hero[1], 85)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+endif
+endfunction

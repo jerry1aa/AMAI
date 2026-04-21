@@ -1828,3 +1828,194 @@ else
 
 endif
 endfunction
+
+function init_strategy_Wyrms2 takes nothing returns nothing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+endfunction
+function build_sequence_Wyrms2 takes nothing returns nothing
+if tier == 3 then
+call ResetDynamicSystem()
+call DynamicBuildUnit(0, 0)
+
+call BuildUnit(2, uGHOUL, 90)
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+call BuildUnit(1, hero[3], 60)
+call BuildUnit(1, uSAC_PIT, 70)
+call BuildUnit(2, uBONEYARD, 65)
+call BuildUpgr(1, uUPG_WYRM_BREATH, 60)
+call BuildUnit(8, uFROST_WYRM, 50)
+
+call BuildUnit(1, uTOMB_OF_RELICS, 45)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+elseif tier == 2 then
+call BuildUnit(2, uGHOUL, 90)
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+call BuildUnit(1, uNECROPOLIS_3, 70)
+call BuildUnit(1, uSAC_PIT, 70)
+call BuildUpgr(1, uUPG_FIEND_WEB, 65)
+call BuildUnit(4, uCRYPT_FIEND, 45)
+
+call BuildUnit(1, uTOMB_OF_RELICS, 45)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+else
+call BuildUnit(3, uGHOUL, 90)
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, uNECROPOLIS_2, 50)
+call BuildUnit(1, uTOMB_OF_RELICS, 45)
+call BuildUnit(8, uCRYPT_FIEND, 40)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+endif
+endfunction
