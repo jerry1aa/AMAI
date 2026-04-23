@@ -9324,6 +9324,7 @@ function cmd_misc takes integer cmd, integer data returns nothing
     if data < rp_strat_length then
       set strategy = data
       set chosen_strategy = strategy
+      set recalculate_heros = true
     else
       call DisplayToAllies(invalid_strategy_number)
     endif
@@ -10276,6 +10277,7 @@ function finish_strategy_change takes nothing returns nothing
       //if rp_strat[rp_strat_sort[i]] / Max(rp_strat[strategy], 1) > strategy_change_threshold then
       set strategy = rp_strat_sort[i]
       set chosen_strategy = strategy
+      set recalculate_heros = true
       call SetChatVar("Strategy", GetCurrentStrategyName())
       //endif
       return

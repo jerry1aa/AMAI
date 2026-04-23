@@ -233,6 +233,12 @@ function global_build_sequence takes nothing returns nothing
 		call BuildUpgr(3, uUPG_ARMOR, 40)
    		call BuildUpgr(3, uUPG_RANGED, 40)
   		call BuildUpgr(3, uUPG_LEATHER, 40)
+            if GetGold() > 1200 and GetWood() > 500 then
+		      call BuildUpgr(3, uUPG_MELEE, 75)
+		      call BuildUpgr(3, uUPG_ARMOR, 70)
+		      call BuildUpgr(3, uUPG_RANGED, 75)
+		      call BuildUpgr(3, uUPG_LEATHER, 70)
+		endif
 
     // TIER 2 UPGRADES
     //--------------------------------------------------------
@@ -2330,3 +2336,234 @@ else
 endif
 endfunction
 
+
+function init_strategy_PaladinRifle takes nothing returns nothing
+call AddBlock(1, uBLACKSMITH, false, 1, uHOUSE, 60)
+call AddBlock(1, uBLACKSMITH, false, 9, uPEASANT, 60)
+call AddBlock(1, uBLACKSMITH, true, 0, uARCANE_VAULT, 60)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+endfunction
+function build_sequence_PaladinRifle takes nothing returns nothing
+if tier == 3 then
+call ResetDynamicSystem()
+call DynamicBuildUnit(0, 0)
+
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+call BuildUnit(1, hero[3], 60)
+
+call BuildUpgr(1, uUPG_GUN_RANGE, 70)
+call BuildUnit(12, uRIFLEMAN, 50)
+call BuildUnit(8, uGRYPHON, 50)
+call BuildUnit(4, uPRIEST, 50)
+
+call BuildUnit(1, uARCANE_VAULT, 50)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+elseif tier == 2 then
+call ResetDynamicSystem()
+call DynamicBuildUnit(0, 0)
+
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+call BuildUpgr(1, uUPG_GUN_RANGE, 70)
+call BuildUnit(12, uRIFLEMAN, 50)
+call BuildUnit(4, uPRIEST, 50)
+
+call BuildUnit(1, uCASTLE, 55)
+call BuildUnit(1, uARCANE_VAULT, 60)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+else
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, uBLACKSMITH, 75)
+call BuildUnit(8, uRIFLEMAN, 50)
+call BuildUnit(1, uBARRACKS, 65)
+call BuildUnit(1, uKEEP, 60)
+call BuildUnit(1, uARCANE_VAULT, 60)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+endif
+endfunction

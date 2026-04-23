@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Added `docs/BuildSequence-Functions.md`: reference for all functions usable in `BuildSequence.ai`.
 
 ### Fixed
+- Re-pick heroes when strategy changed via commander: `CHANGE STRATEGY` now sets `recalculate_heros = true` so hero selection re-runs on the next build cycle, applying the new strategy's hero bonus (already-built heroes are preserved).
 - Call `MergeUnits` during build phase for two-source unit combinations (e.g. HIPPO_RIDER): adds `UnitConversions.txt` block to `RefreshNeeded` and `CheckNotBuiltFrom`, removes HIPPO_RIDER from `UnitEquivalence.txt` BUILT_FROM (dead code for two-source units), extends `UnitConversions.txt` with upgrade gate columns.
 - Fix Hippogryph Rider production broken in TFT and REFORGED:
   - Add `HIPPO_RIDER` to `UnitConversions.txt` upgrade gate so `MergeUnits` fires correctly in both build and attack phases (BUILT_FROM entry removed as dead code for two-source units)
