@@ -2567,3 +2567,244 @@ call BuildUnit(1, uARCANE_VAULT, 60)
 
 endif
 endfunction
+
+function init_strategy_OnlyFly takes nothing returns nothing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+endfunction
+function build_sequence_OnlyFly takes nothing returns nothing
+if tier == 3 then
+call ResetDynamicSystem()
+call DynamicBuildUnit(0, 0)
+
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+call BuildUnit(1, hero[3], 60)
+
+call BuildUnit(8, uHUMAN_DRAGON_HAWK, 50)
+call BuildUnit(8, uGRYPHON, 50)
+call BuildUnit(12, uCOPTER, 50)
+call BuildUnit(12, uCOPTER, 50)
+call BuildUnit(4, uPRIEST, 50)
+
+call BuildUnit(1, uARCANE_VAULT, 50)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+elseif tier == 2 then
+call ResetDynamicSystem()
+call DynamicBuildUnit(0, 0)
+
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, hero[2], 70)
+
+call BuildUnit(8, uHUMAN_DRAGON_HAWK, 50)
+call BuildUnit(4, uPRIEST, 50)
+
+call BuildUnit(1, uCASTLE, 55)
+call BuildUnit(1, uARCANE_VAULT, 55)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+else
+call BuildUnit(1, hero[1], 80)
+call BuildUnit(1, uBARRACKS, 65)
+call BuildUnit(8, uFOOTMAN, 50)
+call BuildUnit(1, uKEEP, 60)
+call BuildUnit(1, uARCANE_VAULT, 55)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+endif
+endfunction
